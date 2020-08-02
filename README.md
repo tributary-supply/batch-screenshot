@@ -1,6 +1,6 @@
 ## BATCH SCREENSHOTS
 
-1. Clone repository to computer
+1. Clone repository to computer or FORK and clone from your own repo
 2. Make sure Node and nodemon are installed globally on your computer
 3. open a terminal and cd to project folder
 4. run npm install to get all necessary dependencies

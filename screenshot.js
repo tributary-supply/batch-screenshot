@@ -13,6 +13,7 @@ var timeout;
 var emailZip = '';
 
 //boilerplate
+app.use(express.static(__dirname + '/'));
 app.set('view engine','ejs');
 app.use(bodyParser.urlencoded({
   extended: true
@@ -40,7 +41,7 @@ const batchScreenShot = (data) => {
   console.log("SUBMITTED",submittedData)
   fs.writeFile("batch.txt", `${submittedData}`, (err) => {
     if (err) {
-      console.log(`Failed to write lsit of URLs batch.txt: ${err}`);
+      console.log(`Failed to write list of URLs batch.txt: ${err}`);
     }
     else {
       console.log("WRITTEN!!!!")

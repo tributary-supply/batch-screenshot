@@ -3,18 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- <link rel="stylesheet" href="styles.css"> -->
+  <link rel="stylesheet" href="./styles.css" type="text/css">
   <title>Document</title>
 </head>
 <body>
   <h1>BATCH SCREENSHOTS APP</h1>
   <p>input SSID#s or URLS with a single space between each!</p>
   <p>ex. B07B9XKP9L B07BNB95G6 B07F36449W B01HGNPIV4 B01HMCXLZE B01HMCXYZ6</p>
-  <form action="http://localhost:3000/screenshot.js" method="POST">
-    <label for="singleUrl">Enter list of ssids or urls</label>
+  <form id="form" action="http://localhost:3000/screenshot.js" method="POST">
+    <label for="singleUrl">Enter list of ssids or urls:</label>
     <input name="singleUrl" type="text">
-    <label for="sendZipEmail">Enter email for zip file to be sent to</label>
-    <input name="sendZipEmail" type="email">
+    <label for="sendZipEmail">Enter email for zipped folder to be sent to:</label>
+    <input id="email-input" name="sendZipEmail" type="email">
     <button type="submit">submit</button>
   </form>
 </body>

@@ -1,0 +1,13 @@
+body {
+}
+#form {
+  display: flex;
+  flex-direction: column;
+}
+#email-input {
+  width: 200px;
+}
+
+#form button {
+  width: 100px;
+}
