@@ -2,15 +2,15 @@ require('dotenv').config();
 var express = require('express');
 const bodyParser = require("body-parser");
 const ejs = require('ejs');
-var app = express();
 const browshot = require('browshot');
 const fs = require("fs");
 var validator = require('validator');
+var nodemailer = require('nodemailer');
 
+var app = express();
 var client = new browshot(`${process.env.BROWSHOT_API_KEY}`);
 var timeout;
-
-// console.log(process.env.BROWSHOT_API_KEY)
+var emailZip = '';
 
 //boilerplate
 app.set('view engine','ejs');
@@ -23,9 +23,9 @@ app.get('/', function(req, res){
 })
 //sends data from form to screenshot.js and then redirects back to the form page
 app.post('/screenshot.js', (req, res) => {
-  // console.log(req.body.singleUrl)
   batchScreenShot(req.body.singleUrl)
-  // screenShot(req.body.singleUrl)
+  emailZip = req.body.sendZipEmail
+  // sendEmail('this is the URL')
   res.redirect('/')
 })
 
@@ -63,7 +63,6 @@ function formatData(data){
       dataArr[i] = `${dataArr[i]}\n`
     }
   }
-  // console.log(data)
   return dataArr.join('')
 }
 
@@ -99,11 +98,38 @@ function checkBatch(id) {
 			// The batch succeeded, download the archive. There may be more than 1 URL
 			for(var i in batch.urls) {
         //SEND THIS ARCHIVE TO EMAIL PROVIDED IN EMAIL INPUT FIELD
-				console.log(`Downloading ${batch.urls[i]}  ...`);
+        console.log(`Downloading ${batch.urls[i]}  ...`);
+        sendEmail(batch.urls[i])
 			}
 		}
 		else {
 			console.log(`Waiting for batch ${batch.id} to finish`);
 		}
 	});
+}
+
+const sendEmail = (url) => {
+  var transporter = nodemailer.createTransport({
+    service: 'gmail',
+    // secure: false,
+    auth: {
+      user: `${process.env.EMAIL}`,
+      pass: `${process.env.EMAILPASSWORD}`
+    }
+  });
+  
+  var mailOptions = {
+    from: `${process.env.MAIL}`,
+    to: emailZip,
+    subject: 'Here is your batch of screenshots!',
+    text: `Just click this link and you will be directed to save a .zip file to your device: ${url}`
+  };
+  
+  transporter.sendMail(mailOptions, function(error, info){
+    if (error) {
+      console.log(error);
+    } else {
+      console.log('Email sent: ' + info.response);
+    }
+  });
 }
