@@ -21,8 +21,8 @@ app.use(bodyParser.urlencoded({
 app.get('/', function(req, res){
   return res.render('index.ejs')
 })
-//sends data from form to testpost.js and then redirects back to the form page
-app.post('/testPost.js', (req, res) => {
+//sends data from form to screenshot.js and then redirects back to the form page
+app.post('/screenshot.js', (req, res) => {
   // console.log(req.body.singleUrl)
   batchScreenShot(req.body.singleUrl)
   // screenShot(req.body.singleUrl)
