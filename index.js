@@ -14,8 +14,7 @@ var app = express();
 var client = new browshot(`${process.env.BROWSHOT_API_KEY}`);
 var timeout;
 var emailZip = '';
-var authToken = undefined;
-// const isLogged = false;
+var authToken;
 
 //boilerplate
 app.use(express.static(__dirname + '/'));
@@ -27,11 +26,8 @@ app.use(bodyParser.urlencoded({
 app.get('/login', function(req,res){
   return res.render('login.ejs')
 })
-app.get('/success', function(req, res){
-  return res.render('success.ejs')
-})
 
-app.post('/login', (req, res) => {
+app.post('/index.js', (req, res) => {
   const pw = {
     password: req.body.password
   }
@@ -43,7 +39,6 @@ app.post('/login', (req, res) => {
         token,
       })
     })
-    isLogged = true;
     res.redirect('/')
   } else {
     console.log("PASSWORD IS INCORRECT")
@@ -56,10 +51,10 @@ app.get('/', verifyToken, function(req, res){
   return res.render('index.ejs')
 })
 //sends data from form to screenshot.js and then redirects back to the form page
-app.post('/screenshot', verifyToken, (req, res) => {
+app.post('/screenshot.js', verifyToken, (req, res) => {
   batchScreenShot(req.body.singleUrl)
   emailZip = req.body.sendZipEmail
-  res.redirect('/success')
+  res.redirect('/')
 })
 
 app.listen(PORT, function(){
@@ -71,14 +66,16 @@ app.listen(PORT, function(){
 
 //UTIL PRIMARY FUNCTIONS-------------------------------------------------
 function verifyToken(req, res, next) {
+  // console.log("REQ", authToken)
+  // const bearerHeader = req.headers['authorization'] // this comes up undefined!!!
   const bearerHeader = authToken // this comes up undefined!!!
-  if (bearerHeader !== undefined){
+  // console.log("bearerheader", bearerHeader)
+  if (typeof bearerHeader !== undefined){
     const bearerToken = bearerHeader.split(' ')[1]
     req.token = bearerToken
     next()
   } else {
-    // res.sendStatus(403); //forbidden
-    res.redirect('/login')
+    res.sendStatus(403); //forbidden
   }
 }
 
