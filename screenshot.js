@@ -2,20 +2,19 @@ require('dotenv').config();
 var PORT = process.env.PORT || 3000;
 var express = require('express');
 const bodyParser = require("body-parser");
+const cors = require('cors');
 const ejs = require('ejs');
 const jwt = require('jsonwebtoken')
 const browshot = require('browshot');
 const fs = require("fs");
 var validator = require('validator');
 var nodemailer = require('nodemailer');
-// const { JsonWebTokenError } = require('jsonwebtoken');
+var cookieParser = require('cookie-parser');
 
 var app = express();
 var client = new browshot(`${process.env.BROWSHOT_API_KEY}`);
 var timeout;
 var emailZip = '';
-var authToken = undefined;
-// const isLogged = false;
 
 //boilerplate
 app.use(express.static(__dirname + '/'));
@@ -23,6 +22,14 @@ app.set('view engine','ejs');
 app.use(bodyParser.urlencoded({
   extended: true
 }));
+app.use(cors())
+app.use(cookieParser());
+// app.use(function(req, res, next) {
+//   res.setHeader('Access-Control-Allow-Origin', "*");
+//   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
+//   res.setHeader('Access-Control-Allow-Headers', 'authorization, content-type');
+//   next();
+// });
 
 app.get('/login', function(req,res){
   return res.render('login.ejs')
@@ -36,14 +43,8 @@ app.post('/login', (req, res) => {
     password: req.body.password
   }
   if (req.body.password === process.env.APP_PASSWORD){
-    jwt.sign({pw : pw}, "secretkey", (err, token) => {
-      console.log("token", token)
-      authToken = token
-      res.json({
-        token,
-      })
-    })
-    isLogged = true;
+    var token = jwt.sign({pw : pw}, "secretkey", {expiresIn: '30s'} )
+    res.cookie('JWT', token, {maxAge: 300000})
     res.redirect('/')
   } else {
     console.log("PASSWORD IS INCORRECT")
@@ -57,8 +58,19 @@ app.get('/', verifyToken, function(req, res){
 })
 //sends data from form to screenshot.js and then redirects back to the form page
 app.post('/screenshot', verifyToken, (req, res) => {
-  batchScreenShot(req.body.singleUrl)
-  emailZip = req.body.sendZipEmail
+  const { sendZipEmail, size, singleUrl, batchName, screenWidth, screenHeight} = req.body
+  var ssData = {
+    sendZipEmail: sendZipEmail,
+    batchUrls: singleUrl,
+    screenshotSize: size,
+    batchName: batchName,
+    screenWidth: screenWidth,
+    screenHeight: screenHeight
+  }
+
+  batchScreenShot(ssData)
+  emailZip = sendZipEmail
+  // console.log(size)
   res.redirect('/success')
 })
 
@@ -71,21 +83,22 @@ app.listen(PORT, function(){
 
 //UTIL PRIMARY FUNCTIONS-------------------------------------------------
 function verifyToken(req, res, next) {
-  const bearerHeader = authToken // this comes up undefined!!!
+  const bearerHeader = req.cookies.JWT
+  // console.log("COOKIED TOKEN", req.cookies.JWT)
+
   if (bearerHeader !== undefined){
     const bearerToken = bearerHeader.split(' ')[1]
     req.token = bearerToken
     next()
   } else {
     // res.sendStatus(403); //forbidden
+    console.log("auth failed/your cookie has expired")
     res.redirect('/login')
   }
 }
 
-
-
 const batchScreenShot = (data) => {
-  const submittedData = formatData(data)
+  const submittedData = formatData(data.batchUrls)
   console.log("SUBMITTED",submittedData)
   fs.writeFile("batch.txt", `${submittedData}`, (err) => {
     if (err) {
@@ -93,8 +106,8 @@ const batchScreenShot = (data) => {
     }
     else {
       console.log("WRITTEN!!!!")
-      sendEmail2('HERES THE URL')
-      // submitBatch("batch.txt");
+      // sendEmail2('HERES THE URL').catch(console.error)
+      submitBatch("batch.txt", data);
     }
   });
 }
@@ -115,9 +128,10 @@ function formatData(data){
   return dataArr.join('')
 }
 
-function submitBatch(file) {
+function submitBatch(file, options) {
 	client.batchCreate(
-		file, 65, { screen_width: 1600, screen_height: 1200, size: 'page' }, 
+		// file, 65, { screen_width: 1600, screen_height: 1200, size: 'page' }, 
+		file, 65, { screen_width: `${options.screenWidth}`, screen_height: `${options.screenHeight}`, size: `${options.screenshotSize}`, name: `${options.batchName}` }, 
 		function(batch) {
 			fs.unlink(file, function() {});
 			
@@ -148,8 +162,7 @@ function checkBatch(id) {
 			for(var i in batch.urls) {
         //SEND THIS ARCHIVE TO EMAIL PROVIDED IN EMAIL INPUT FIELD
         console.log(`Downloading ${batch.urls[i]}  ...`);
-        // sendEmail(batch.urls[i])
-        sendEmail2(batch.urls[i])
+        sendEmail2(batch.urls[i]).catch(console.error)
 			}
 		}
 		else {
@@ -158,7 +171,6 @@ function checkBatch(id) {
 	});
 }
 
-  // async..await is not allowed in global scope, must use a wrapper
 const sendEmail2 = async (url) => {
   console.log(url)
   // create reusable transporter object using the default SMTP transport
@@ -180,10 +192,5 @@ const sendEmail2 = async (url) => {
     text: `Just click this link and you will be directed to save a .zip file to your device: ${url}`, // plain text body
     // html: "<b>Hello world?</b>", // html body
   });
-
-  // Message sent: <b658f8ca-6296-ccf4-8306-87d57a0b4321@example.com>
   console.log("Message sent: %s", info.messageId);
 }
-  
-// main().catch(console.error);
-

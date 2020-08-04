@@ -4,7 +4,7 @@ body {
   display: flex;
   flex-direction: column;
 }
-#email-input {
+.small-inputs {
   width: 200px;
 }
 

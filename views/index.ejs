@@ -13,8 +13,25 @@
   <form id="form" action="/screenshot" method="POST">
     <label for="singleUrl">Enter list of ssids or urls:</label>
     <input name="singleUrl" type="text">
+
+    <label for="batchName">Name your batch</label>
+    <input class="small-inputs" name="batchName" type="text">
+
     <label for="sendZipEmail">Enter email for zipped folder to be sent to:</label>
-    <input id="email-input" name="sendZipEmail" type="email">
+    <input id="email-input" class="small-inputs" name="sendZipEmail" type="email">
+
+    <label for="screenWidth">Screen Width (recommended: 1600):</label>
+    <input id="screenWidth" class="small-inputs" name="screenWidth" type="number">
+
+    <label for="screenHeight">Screen Height (recommended: 1200):</label>
+    <input id="screenHeight" class="small-inputs" name="screenHeight" type="number">
+
+    <label for="size">Choose screen for only one screen's size or page for the entire page.</label>
+    <select id="ss-size" class="small-inputs" name="size">
+      <option value="screen">Screen</option>
+      <option value="page">Page</option>
+    </select>
+
     <button type="submit">submit</button>
   </form>
 </body>
