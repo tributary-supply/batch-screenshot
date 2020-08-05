@@ -8,17 +8,18 @@
 </head>
 <body>
   <h1>BATCH SCREENSHOTS APP</h1>
-  <p>input SSID#s or URLS with a single space between each!</p>
+  <p>IMPORTANT: input SSID#s or URLS with a single space between each!</p>
   <p>ex. B07B9XKP9L B07BNB95G6 B07F36449W B01HGNPIV4 B01HMCXLZE B01HMCXYZ6</p>
+  <p>ex. www.google.com https://www.reddit.com www.amazon.com B01HMCXYZ6 www.facebook.com www.ebay.com</p>
   <form id="form" action="/screenshot" method="POST">
-    <label for="singleUrl">Enter list of ssids or urls:</label>
-    <input name="singleUrl" type="text">
+    <label for="singleUrl">(REQUIRED) Enter list of ssids or urls:</label>
+    <input name="singleUrl" type="text" required>
 
     <label for="batchName">Name your batch</label>
     <input class="small-inputs" name="batchName" type="text">
 
-    <label for="sendZipEmail">Enter email for zipped folder to be sent to:</label>
-    <input id="email-input" class="small-inputs" name="sendZipEmail" type="email">
+    <label for="sendZipEmail">(REQUIRED) Enter email for zipped folder to be sent to:</label>
+    <input id="email-input" class="small-inputs" name="sendZipEmail" type="email" required>
 
     <label for="screenWidth">Screen Width (recommended: 1600):</label>
     <input id="screenWidth" class="small-inputs" name="screenWidth" type="number">
@@ -28,11 +29,11 @@
 
     <label for="size">Choose screen for only one screen's size or page for the entire page.</label>
     <select id="ss-size" class="small-inputs" name="size">
-      <option value="screen">Screen</option>
       <option value="page">Page</option>
+      <option value="screen">Screen</option>
     </select>
-
-    <button type="submit">submit</button>
+    <input type="submit" value="Submit">
+    <!-- <input type="submit">submit</button> -->
   </form>
 </body>
 </html>

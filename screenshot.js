@@ -158,7 +158,8 @@ function checkBatch(id) {
 		else if (batch.status == 'finished') {
 			clearInterval(timeout);
 			
-			// The batch succeeded, download the archive. There may be more than 1 URL
+      // The batch succeeded, download the archive. There may be more than 1 URL
+      console.log("BATCH URL ARRAY LENGTH", batch.urls.length)
 			for(var i in batch.urls) {
         //SEND THIS ARCHIVE TO EMAIL PROVIDED IN EMAIL INPUT FIELD
         console.log(`Downloading ${batch.urls[i]}  ...`);
@@ -176,8 +177,8 @@ const sendEmail2 = async (url) => {
   // create reusable transporter object using the default SMTP transport
   let transporter = nodemailer.createTransport({
     host: `${process.env.HOST}`,
-    port: 465,
-    secure: true, // true for 465, false for other ports
+    port: process.env.EMAIL_PORT,
+    secure: process.env.SECURE, // true for 465, false for other ports
     auth: {
       user: `${process.env.USERNAME}`,
       pass: `${process.env.EMAIL_PASSWORD}`
