@@ -8,8 +8,11 @@ const jwt = require('jsonwebtoken')
 const browshot = require('browshot');
 const fs = require("fs");
 var validator = require('validator');
-var nodemailer = require('nodemailer');
 var cookieParser = require('cookie-parser');
+var nodemailer = require('nodemailer');
+const sgMail = require('@sendgrid/mail');
+
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 var app = express();
 var client = new browshot(`${process.env.BROWSHOT_API_KEY}`);
@@ -106,7 +109,8 @@ const batchScreenShot = (data) => {
     }
     else {
       console.log("WRITTEN!!!!")
-      sendEmail2('HERES THE URL').catch(console.error)
+      sendMail('HERES THE URL')
+      // sendEmail2('HERES THE URL').catch(console.error)
       // submitBatch("batch.txt", data);
     }
   });
@@ -194,4 +198,26 @@ const sendEmail2 = async (url) => {
     // html: "<b>Hello world?</b>", // html body
   });
   console.log("Message sent: %s", info.messageId);
+}
+
+
+//SENDGRID MAIL
+const sendMail = (url) => {
+  const msg = {
+    to: emailZip,
+    from: 'admin@sgy.co', // Use the email address or domain you verified above
+    subject: 'Here is your batch of screenshots!',
+    text: `Just click this link and you will be directed to save a .zip file to your device: ${url}`,
+  };
+  
+  sgMail
+    .send(msg)
+    .then(() => {}, error => {
+      console.error(error);
+  
+      if (error.response) {
+        console.error(error.response.body)
+      }
+    });
+
 }
