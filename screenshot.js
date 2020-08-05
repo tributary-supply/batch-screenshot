@@ -109,7 +109,7 @@ const batchScreenShot = (data) => {
     }
     else {
       console.log("WRITTEN!!!!")
-      sendMail('YOUR ZIPPED FOLDER WILL BE IN THE NEXT ONE!')
+      // sendMail('YOUR ZIPPED FOLDER WILL BE IN THE NEXT ONE!')
       // sendEmail2('HERES THE URL').catch(console.error)
       submitBatch("batch.txt", data);
     }
