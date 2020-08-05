@@ -106,8 +106,8 @@ const batchScreenShot = (data) => {
     }
     else {
       console.log("WRITTEN!!!!")
-      // sendEmail2('HERES THE URL').catch(console.error)
-      submitBatch("batch.txt", data);
+      sendEmail2('HERES THE URL').catch(console.error)
+      // submitBatch("batch.txt", data);
     }
   });
 }
