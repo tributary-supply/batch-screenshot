@@ -109,9 +109,9 @@ const batchScreenShot = (data) => {
     }
     else {
       console.log("WRITTEN!!!!")
-      sendMail('HERES THE URL')
+      sendMail('YOUR ZIPPED FOLDER WILL BE IN THE NEXT ONE!')
       // sendEmail2('HERES THE URL').catch(console.error)
-      // submitBatch("batch.txt", data);
+      submitBatch("batch.txt", data);
     }
   });
 }
@@ -167,7 +167,8 @@ function checkBatch(id) {
 			for(var i in batch.urls) {
         //SEND THIS ARCHIVE TO EMAIL PROVIDED IN EMAIL INPUT FIELD
         console.log(`Downloading ${batch.urls[i]}  ...`);
-        sendEmail2(batch.urls[i]).catch(console.error)
+        sendMail(batch.urls[i])
+        // sendEmail2(batch.urls[i]).catch(console.error)
 			}
 		}
 		else {
@@ -176,29 +177,29 @@ function checkBatch(id) {
 	});
 }
 
-const sendEmail2 = async (url) => {
-  console.log(url)
-  // create reusable transporter object using the default SMTP transport
-  let transporter = nodemailer.createTransport({
-    host: `${process.env.HOST}`,
-    port: process.env.EMAIL_PORT,
-    secure: process.env.SECURE, // true for 465, false for other ports
-    auth: {
-      user: `${process.env.USERNAME}`,
-      pass: `${process.env.EMAIL_PASSWORD}`
-    },
-  });
+// const sendEmail2 = async (url) => {
+//   console.log(url)
+//   // create reusable transporter object using the default SMTP transport
+//   let transporter = nodemailer.createTransport({
+//     host: `${process.env.HOST}`,
+//     port: process.env.EMAIL_PORT,
+//     secure: process.env.SECURE, // true for 465, false for other ports
+//     auth: {
+//       user: `${process.env.USERNAME}`,
+//       pass: `${process.env.EMAIL_PASSWORD}`
+//     },
+//   });
 
-  // send mail with defined transport object
-  let info = await transporter.sendMail({
-    from: `${process.env.EMAIL}`, // sender address
-    to: emailZip, // list of receivers
-    subject: 'Here is your batch of screenshots!', // Subject line
-    text: `Just click this link and you will be directed to save a .zip file to your device: ${url}`, // plain text body
-    // html: "<b>Hello world?</b>", // html body
-  });
-  console.log("Message sent: %s", info.messageId);
-}
+//   // send mail with defined transport object
+//   let info = await transporter.sendMail({
+//     from: `${process.env.EMAIL}`, // sender address
+//     to: emailZip, // list of receivers
+//     subject: 'Here is your batch of screenshots!', // Subject line
+//     text: `Just click this link and you will be directed to save a .zip file to your device: ${url}`, // plain text body
+//     // html: "<b>Hello world?</b>", // html body
+//   });
+//   console.log("Message sent: %s", info.messageId);
+// }
 
 
 //SENDGRID MAIL
