@@ -9,8 +9,11 @@ const browshot = require('browshot');
 const fs = require("fs");
 var validator = require('validator');
 var cookieParser = require('cookie-parser');
-var nodemailer = require('nodemailer');
+// var nodemailer = require('nodemailer');
 const sgMail = require('@sendgrid/mail');
+const { DownloaderHelper } = require('node-downloader-helper');
+const decompress = require('decompress');
+const pptxgen = require('pptxgenjs')
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
@@ -18,6 +21,7 @@ var app = express();
 var client = new browshot(`${process.env.BROWSHOT_API_KEY}`);
 var timeout;
 var emailZip = '';
+var directoryPath;
 
 //boilerplate
 app.use(express.static(__dirname + '/'));
@@ -83,6 +87,22 @@ app.listen(PORT, function(){
 
 
 
+// client.instanceList(function(list) {
+// 	// Check the list of free browsers
+// 	console.log("Free instances:");
+// 	for(var i in list.free) {
+// 		console.log(`\t#${list.free[i].id}: ${list.free[i].browser.name} ${list.free[i].width}x${list.free[i].height}`);
+// 	}
+// });
+// client.instanceList(function(list) {
+// 	// Check the list of free browsers
+// 	console.log("Free instances:");
+// 	for(var i in list.shared) {
+// 		console.log(`\t#${list.shared[i].id}: ${list.shared[i].browser.name} ${list.shared[i].width}x${list.shared[i].height} ${list.shared[i].country}`);
+// 	}
+// });
+
+// downloadThenDecompress('https://browshot.com/static/batch/browshot-5251-As7thx6Bg6iggnVsNb.zip')
 
 //UTIL PRIMARY FUNCTIONS-------------------------------------------------
 function verifyToken(req, res, next) {
@@ -166,8 +186,14 @@ function checkBatch(id) {
       console.log("BATCH URL ARRAY LENGTH", batch.urls.length)
 			for(var i in batch.urls) {
         //SEND THIS ARCHIVE TO EMAIL PROVIDED IN EMAIL INPUT FIELD
-        console.log(`Downloading ${batch.urls[i]}  ...`);
-        sendMail(batch.urls[i])
+        console.log(`URL OF ZIP ${batch.urls[i]}  ...`);
+
+        setTimeout(() => {
+          console.log("...wait 20s to make sure the file has been uploaded by Browshot...")
+          downloadThenDecompress(batch.urls[i])
+        }, 20000);
+        
+        // sendMail(batch.urls[i])
         // sendEmail2(batch.urls[i]).catch(console.error)
 			}
 		}
@@ -203,15 +229,24 @@ function checkBatch(id) {
 
 
 //SENDGRID MAIL
-const sendMail = (url) => {
+const sendMail = async(url) => {
+  pathToAttachment = `${__dirname}/test.pptx`;
+  attachment = await fs.readFileSync(pathToAttachment).toString("base64");
   const msg = {
-    to: emailZip,
+    to: 'dan@danjomedia.com',
     from: 'admin@sgy.co', // Use the email address or domain you verified above
     subject: 'Here is your batch of screenshots!',
-    text: `Just click this link and you will be directed to save a .zip file to your device: ${url}`,
+    text: `The PPTX file is attached! -OR- Just click this link and you will be directed to save a .zip file to your device: ${url}`,
+    attachments: [
+      {
+        content: attachment,
+        fileName: 'test.pptx',
+        type: 'application/pptx',
+        dispostion: 'attachment'
+      }
+    ]
   };
-  
-  sgMail
+  await sgMail
     .send(msg)
     .then(() => {}, error => {
       console.error(error);
@@ -220,5 +255,63 @@ const sendMail = (url) => {
         console.error(error.response.body)
       }
     });
+  console.log("Email Sent")
+  await fs.unlink('test.pptx', (err) => {
+    if (err) throw err;
+    console.log('test ppt was deleted');
+  });
+}
 
+async function downloadThenDecompress(zipURL){
+  try {
+    console.log("attempting DL from: ", zipURL)
+    const dl = await new DownloaderHelper(zipURL, __dirname, {
+      fileName: 'zipFolder.zip',
+      retry: { maxRetries: 8, delay: 3000 }
+    });
+    await dl.on('retry', () => console.log('Retrying Download'))
+    await dl.on('end', () => console.log('Download Completed'))
+
+    //getting random 404 response from this ------------------------<<<<<<<<<<<<
+    await dl.start();
+    console.log("HERE")
+
+    let files = await decompress('zipFolder.zip', 'dist')
+    await createPPT(files, zipURL)
+    //   .then(files => {
+    //   console.log('unzipped!')
+    //   // createPPT(files, zipURL)
+    //   // console.log('paths', files);
+    // });
+    await fs.unlink('zipFolder.zip', (err) => {
+      if (err) throw err;
+      console.log('zip folder was deleted: PROCESS FINISHED');
+    });
+  } catch (error) {
+    console.log("ERROR: ", error);
+    await dl.retry()
+  }
+}
+
+async function createPPT(files, zipURL){
+  // 1. Create a new Presentation
+  let pres = await new pptxgen();
+  // 2. Add a Slide
+  // console.log('FILESSS', files.length)
+  for (i=0;i<files.length;i++){
+    if (files[i].type == 'directory'){
+      continue;
+    } else {
+      let slide = await pres.addSlide();
+      await slide.addImage({
+        path: `dist/${files[i].path}`
+      });
+      console.log("slide created")
+    }
+
+    
+  }
+  await pres.writeFile("test.pptx")
+  console.log('pptx saved')
+  await sendMail(zipURL)
 }
