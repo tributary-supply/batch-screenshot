@@ -13,7 +13,8 @@ var cookieParser = require('cookie-parser');
 const sgMail = require('@sendgrid/mail');
 const { DownloaderHelper } = require('node-downloader-helper');
 const decompress = require('decompress');
-const pptxgen = require('pptxgenjs')
+const pptxgen = require('pptxgenjs');
+const { get } = require('http');
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
@@ -102,7 +103,7 @@ app.listen(PORT, function(){
 // 	}
 // });
 
-// downloadThenDecompress('https://browshot.com/static/batch/browshot-5251-As7thx6Bg6iggnVsNb.zip')
+// downloadThenDecompress('https://browshot.com/static/batch/browshot-5262-lTQQKVv11WiHondpG4AlYDa.zip')
 
 //UTIL PRIMARY FUNCTIONS-------------------------------------------------
 function verifyToken(req, res, next) {
@@ -263,14 +264,21 @@ const sendMail = async(url) => {
 }
 
 async function downloadThenDecompress(zipURL){
+  console.log("attempting DL from: ", zipURL)
+  const dl = await new DownloaderHelper(zipURL, __dirname, {
+    method: 'GET',
+    fileName: 'zipFolder.zip',
+    // retry: {attempt: 10, retryOpts: {}}
+    retry: { maxRetries: 8, delay: 300 }
+  });
   try {
-    console.log("attempting DL from: ", zipURL)
-    const dl = await new DownloaderHelper(zipURL, __dirname, {
-      fileName: 'zipFolder.zip',
-      retry: { maxRetries: 8, delay: 3000 }
-    });
-    await dl.on('retry', () => console.log('Retrying Download'))
-    await dl.on('end', () => console.log('Download Completed'))
+    await dl.on('retry', (attempt, retryOpts) => console.log('Retrying Download', attempt, retryOpts))
+    await dl.on('end', (info) => console.log('Download Completed'))
+    await dl.on('error', async (err) => {
+      await downloadThenDecompress(zipURL)
+      // if (err) throw err;
+      // console.log(err)
+    })
 
     //getting random 404 response from this ------------------------<<<<<<<<<<<<
     await dl.start();
@@ -278,18 +286,15 @@ async function downloadThenDecompress(zipURL){
 
     let files = await decompress('zipFolder.zip', 'dist')
     await createPPT(files, zipURL)
-    //   .then(files => {
-    //   console.log('unzipped!')
-    //   // createPPT(files, zipURL)
-    //   // console.log('paths', files);
-    // });
+
     await fs.unlink('zipFolder.zip', (err) => {
       if (err) throw err;
       console.log('zip folder was deleted: PROCESS FINISHED');
     });
+
   } catch (error) {
-    console.log("ERROR: ", error);
-    await dl.retry()
+    // dl.start()
+    // console.log("ERROR: ", error);
   }
 }
 
@@ -304,7 +309,16 @@ async function createPPT(files, zipURL){
     } else {
       let slide = await pres.addSlide();
       await slide.addImage({
-        path: `dist/${files[i].path}`
+        path: `dist/${files[i].path}`,
+        x: 0,
+        y: 0,
+        w: 8,
+        h: 5,
+        sizing: { 
+          type:'contain',
+          w: 8,
+          // h: 6,
+        }
       });
       console.log("slide created")
     }
