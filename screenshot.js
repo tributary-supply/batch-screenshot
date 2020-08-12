@@ -189,8 +189,9 @@ function checkBatch(id) {
         //SEND THIS ARCHIVE TO EMAIL PROVIDED IN EMAIL INPUT FIELD
         console.log(`URL OF ZIP ${batch.urls[i]}  ...`);
 
-        setTimeout(() => {
-          console.log("...wait 20s to make sure the file has been uploaded by Browshot...")
+        // setTimeout(() => {
+          // console.log("...wait 20s to make sure the file has been uploaded by Browshot...")
+          console.log(".into dl and decompress function...")
           downloadThenDecompress(batch.urls[i])
         }, 20000);
         
