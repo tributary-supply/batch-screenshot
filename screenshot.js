@@ -193,7 +193,7 @@ function checkBatch(id) {
           // console.log("...wait 20s to make sure the file has been uploaded by Browshot...")
           console.log(".into dl and decompress function...")
           downloadThenDecompress(batch.urls[i])
-        }, 20000);
+        // }, 20000);
         
         // sendMail(batch.urls[i])
         // sendEmail2(batch.urls[i]).catch(console.error)
