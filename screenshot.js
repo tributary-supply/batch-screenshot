@@ -258,6 +258,7 @@ async function downloadThenDecompress(zipURL, data){
 }
 
 async function createPPT(files, zipURL, inputData){
+  let dirs = 0;
   // 1. Create a new Presentation
   const dataArr = inputData.batchUrls.split(" ").filter(i => i)
   console.log(dataArr)
@@ -265,6 +266,7 @@ async function createPPT(files, zipURL, inputData){
   // 2. Add a Slide
   for (i=0;i<files.length;i++){
     if (files[i].type == 'directory'){
+      dirs += 1;
       continue;
     } else {
       let slide = await pres.addSlide();
@@ -277,12 +279,12 @@ async function createPPT(files, zipURL, inputData){
         h: 5.5,
         sizing: { 
           type:'contain',
-          w: 9,
-          h: 5.5,
+          w: 10,
+          h: 6,
         }
       }
       )
-      .addText(`ASID/URL:\n${dataArr[i]}`, { x: 0, y: 0, w: "30%", h: 1.4, fill: "ffffff", color: "666666", margin: 1 })
+      .addText(`ASID/URL: \n ${dataArr[i - dirs]}`, { x: 0, y: 0, w: "30%", h: 1.4, fill: "ffffff", color: "666666", margin: 1 })
       console.log("slide created")
     }
   }
