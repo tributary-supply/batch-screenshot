@@ -8,9 +8,13 @@
 </head>
 <body>
   <h1>BATCH SCREENSHOTS APP</h1>
-  <p>IMPORTANT: input SSID#s or URLS with a single space between each!</p>
-  <p>ex. B07B9XKP9L B07BNB95G6 B07F36449W B01HGNPIV4 B01HMCXLZE B01HMCXYZ6</p>
-  <p>ex. www.google.com https://www.reddit.com www.amazon.com B01HMCXYZ6 www.facebook.com www.ebay.com</p>
+  <div class="examples-box">
+    <div>
+      <p class="directions">IMPORTANT: input SSID#s or URLS with a single space between each!</p>
+      <p>ex. B07B9XKP9L B07BNB95G6 B07F36449W B01HGNPIV4 B01HMCXLZE B01HMCXYZ6</p>
+      <p>ex. www.google.com https://www.reddit.com www.amazon.com B01HMCXYZ6 www.facebook.com www.ebay.com</p>
+    </div>
+  </div>
   <form id="form" action="/screenshot" method="POST">
     <label for="singleUrl">(REQUIRED) Enter list of ssids or urls:</label>
     <input name="singleUrl" type="text" required>
@@ -26,8 +30,8 @@
     
     <label for="size">Choose screen for only one screen's size or page for the entire page.</label>
     <select id="ss-size" class="small-inputs" name="size">
-      <option value="page">Page</option>
       <option value="screen">Screen</option>
+      <option value="page">Page</option>
     </select>
 
     <label for="sendZipEmail">(REQUIRED) Enter email for zipped folder to be sent to:</label>

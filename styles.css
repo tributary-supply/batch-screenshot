@@ -1,11 +1,40 @@
 * {
   font-family: sans-serif;
+  color: #666666;
 }
 h1 {
   text-align: center;
 }
+.examples-box {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 50px;
+  width: 100%;
+}
+.examples-box div{
+  /* margin: 50px; */
+}
 p {
+  /* text-align: center; */
+}
+.btn {
   text-align: center;
+  margin: 50px;
+}
+a {
+  text-align: center;
+  padding: 10px 20px;
+  text-decoration: none;
+  color: white;
+  background: #45a049;
+  border-radius: 5px;
+}
+a:hover {
+  border: #45a049 1px solid;
+  background: white;
+  color: #45a049;
+
 }
 
 #form {
@@ -36,10 +65,13 @@ input[type=submit] {
 input[type=submit]:hover {
   background-color: #45a049;
 }
-/* .small-inputs {
-  width: 200px;
-} */
 
-/* #form button {
-  width: 100px;
-} */
+@media only screen and (min-width: 700px) {
+  body {
+    margin: 50px 100px;
+  }
+}
+
+.success-plz-wait {
+  text-align: center;
+}
