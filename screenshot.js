@@ -135,11 +135,14 @@ const batchScreenShot = (data) => {
 function formatData(data){
   const dataArr = data.split(" ").filter(i => i)
   for (i = 0; i < dataArr.length; i++){
+    //if it's not a url, it must be an ASID, so add the url
     if (!validator.isURL(dataArr[i])){
       dataArr[i] = `https://amazon.com/dp/${dataArr[i]}\n`
     } else {
+      //otherwise just return it
       dataArr[i] = `${dataArr[i]}\n`
     }
+    //check if the URL exists???
   }
   return dataArr.join('')
 }
@@ -264,7 +267,8 @@ async function createPPT(files, zipURL, inputData){
   console.log(dataArr)
   let pres = await new pptxgen();
   // 2. Add a Slide
-  for (i=0;i<files.length;i++){
+  for (i=0;i<files.length-1;i++){
+    console.log('FILE TYPE',files[i].type)
     if (files[i].type == 'directory'){
       dirs += 1;
       continue;
