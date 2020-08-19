@@ -121,7 +121,7 @@ const scrape = async (data) => {
       });
       productInfo.url = formattedUrlsArr[i]
       // console.log(productInfo.features)
-      scrapedData.push(productInfo)
+      scrapedData.push(productInfo);
       page.close();
     }
     await browser.close();
