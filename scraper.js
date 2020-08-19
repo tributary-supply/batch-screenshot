@@ -94,10 +94,10 @@ const scrape = async (data) => {
       var productInfo = await page.evaluate(() => {
         
         /* Get product title */
-        let title = document.querySelector('#productTitle').innerText;
-        let price = document.querySelector('#priceblock_saleprice') !== null ? document.querySelector('#priceblock_saleprice').innerText : document.querySelector('#priceblock_ourprice').innerText;
-        let images = document.querySelector('.a-dynamic-image').src;
-        let stars = document.querySelector('.a-icon-alt').innerText;
+        let title = document.querySelector('#productTitle') !== null ? document.querySelector('#productTitle').innerText : 'no title'
+        let price = document.querySelector('#priceblock_saleprice') !== null ? document.querySelector('#priceblock_saleprice').innerText : document.querySelector('#priceblock_ourprice') !== null ? document.querySelector('#priceblock_ourprice').innerText : 'no price given';
+        let images = document.querySelector('.a-dynamic-image') !== null ? document.querySelector('.a-dynamic-image').src : `no image`
+        let stars = document.querySelector('.a-icon-alt') !== null ? document.querySelector('.a-icon-alt').innerText: `no star rating`
         let style = document.querySelector('.selection') !== null ? document.querySelector('.selection').innerText : 'no style provided';
         let byLine = document.querySelector('#bylineInfo') !== null ? document.querySelector('#bylineInfo').innerText : 'no by line'
         let category = document.querySelector('#wayfinding-breadcrumbs_feature_div ul li:last-child span a') !== null ? document.querySelector('#wayfinding-breadcrumbs_feature_div ul li:last-child span a').innerText : 'no category'
@@ -157,19 +157,22 @@ async function createPPT(data, origData){
       rows.push([{ text: `${data[i].features[j]}`, options: { color: "2d2d2d", fontSize: 8 } }]);
     };
 
+    if (data[i].images !== "no image") {
+      await slide
+      .addImage({
+        path: data[i].images,
+        x: 0.2,
+        y: 1,
+        w: 3.8,
+        h: 3.8,
+        // sizing: { 
+        //   type:'contain',
+        //   w: 4,
+        //   h: 4,
+        // }
+      })
+    }
     await slide
-    .addImage({
-      path: data[i].images,
-      x: 0.2,
-      y: 1,
-      w: 3.8,
-      h: 3.8,
-      // sizing: { 
-      //   type:'contain',
-      //   w: 4,
-      //   h: 4,
-      // }
-    })
     .addTable(rows, { x: 4.2, y: 0.2, w: "55%", fontFace:'Helvetica' })
     .addText(`Category: ${data[i].category}`, { x: .2, y: .1, w: "35%", fill: "ffffff", color: "666666", fontSize:14, margin: .2 })
     .addText(`URL: ${data[i].url}`, { x: .2, y: .4, w: "35%", fill: "ffffff", color: "666666", fontSize:14, margin: .2 })
