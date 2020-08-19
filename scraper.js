@@ -65,8 +65,8 @@ app.post('/screenshot', verifyToken, (req, res) => {
     batchUrls: singleUrl,
     screenshotSize: size,
     batchName: batchName,
-    screenWidth: screenWidth,
-    screenHeight: screenHeight
+    // screenWidth: screenWidth,
+    // screenHeight: screenHeight
   }
   // async () => {
     scrape(ssData)
@@ -106,6 +106,8 @@ const scrape = async (data) => {
         let images = document.querySelector('.a-dynamic-image').src;
         let stars = document.querySelector('.a-icon-alt').innerText;
         let style = document.querySelector('.selection') !== null ? document.querySelector('.selection').innerText : 'no style provided';
+        let byLine = document.querySelector('#bylineInfo') !== null ? document.querySelector('#bylineInfo').innerText : 'no by line'
+        let category = document.querySelector('#wayfinding-breadcrumbs_feature_div ul li:last-child span a') !== null ? document.querySelector('#wayfinding-breadcrumbs_feature_div ul li:last-child span a').innerText : 'no category'
   
         let features = document.body.querySelectorAll('#feature-bullets ul li .a-list-item');
         let formattedFeatures = [];
@@ -113,17 +115,19 @@ const scrape = async (data) => {
             formattedFeatures.push(feature.innerText);
         });
         var product = { 
-          // "URL": formattedUrlsArr[i],
           "title": title,
           "price": price,
           "images": images,
           "stars": stars,
           "features": formattedFeatures,
           "style": style,
+          "byLine": byLine,
+          "category": category
         };
         return product;
       });
       productInfo.url = formattedUrlsArr[i]
+      // console.log(productInfo.features)
       scrapedData.push(productInfo)
     }
     await browser.close();
@@ -132,10 +136,100 @@ const scrape = async (data) => {
     console.error(error);
   });
   // await console.log('scraped data', scrapedData)
-  createPPT(scrapedData)
+  createPPT(scrapedData, data)
   return scrapedData
 }
 
+
+
+
+async function createPPT(data, origData){
+  // 1. Create a new Presentation
+  let pres = await new pptxgen();
+  // 2. Add a Slide
+  for (i=0;i<data.length;i++){
+    // console.log(data[i].features)
+    let slide = await pres.addSlide();
+    let rows = []
+    // rows.push(["First", "Second", "Third"]);
+    rows.push([{ text: `TITLE: ${data[i].title}`, options: { color: "2d2d2d", bold: true, fontSize: 12 } }]);
+    rows.push([{ text: `MADE BY: ${data[i].byLine}`, options: { color: "666666", fontSize: 8} }]);
+    rows.push([{ text: `${data[i].price}`, options: { color: "2d2d2d" } }]);
+    rows.push([{ text: `${data[i].stars}`, options: { color: "2d2d2d" } }]);
+    rows.push([{ text: `${data[i].style}`, options: { color: "2d2d2d" } }]);
+    // rows.push([{ text: `URL: ${data[i].url}`, options: { color: "666666"} }]);
+
+    for (j = 1; j < data[i].features.length; j++) {
+      rows.push([{ text: `${data[i].features[j]}`, options: { color: "2d2d2d", fontSize: 9 } }]);
+    };
+
+    await slide
+    .addImage({
+      path: data[i].images,
+      x: 0.2,
+      y: 1,
+      w: 3.8,
+      h: 3.8,
+      // sizing: { 
+      //   type:'contain',
+      //   w: 4,
+      //   h: 4,
+      // }
+    })
+    .addTable(rows, { x: 4.2, y: 0.2, w: "55%", fontSize: 10 })
+    .addText(`Category: ${data[i].category}`, { x: .2, y: .1, w: "35%", fill: "ffffff", color: "666666", fontSize:14, margin: .2 })
+    .addText(`URL: ${data[i].url}`, { x: .2, y: .4, w: "35%", fill: "ffffff", color: "666666", fontSize:14, margin: .2 })
+    console.log("slide created")
+  }
+  await pres.writeFile(`${origData.batchName}.pptx`)
+  await console.log('pptx saved')
+  //delete the folder with images
+  // await rimraf("dist", await function () { console.log("dist deleted"); });
+  await sendMail(data, origData)
+}
+
+
+
+
+//SENDGRID MAIL
+const sendMail = async(inputData, origData) => {
+  // console.log(origData)
+  pathToAttachment = `${__dirname}/${origData.batchName}.pptx`;
+  attachment = await fs.readFileSync(pathToAttachment).toString("base64");
+  const msg = {
+    to: `${origData.sendZipEmail}`,
+    from: 'admin@sgy.co',
+    subject: `${origData.batchName} --- Here is your batch`,
+    text: `${origData.batchName} \n${origData.batchUrls}\n\nThe PPTX file is attached!`,
+    attachments: [
+      {
+        content: attachment,
+        fileName: `${origData.batchName}.pptx`,
+        type: 'application/pptx',
+        dispostion: 'attachment'
+      }
+    ]
+  };
+  await sgMail
+    .send(msg)
+    .then(() => {}, error => {
+      console.error(error);
+  
+      if (error.response) {
+        console.error(error.response.body)
+      }
+    });
+  await console.log(`Email Sent to ${origData.sendZipEmail}`)
+  await fs.unlink(`${origData.batchName}.pptx`, (err) => {
+    if (err) throw err;
+    console.log('pptx file was deleted');
+  });
+}
+
+
+
+
+//UTILS -----------------------------------------------------------
 function formatData(data){
   const dataArr = data.split(" ").filter(i => i)
   for (i = 0; i < dataArr.length; i++){
@@ -153,9 +247,6 @@ function formatData(data){
   console.log("FORMATTED",dataArr)
   return dataArr
 }
-
-
-
 function verifyToken(req, res, next) {
   const bearerHeader = req.cookies.JWT
   // console.log("COOKIED TOKEN", req.cookies.JWT)
@@ -169,87 +260,4 @@ function verifyToken(req, res, next) {
     console.log("auth failed/your cookie has expired")
     res.redirect('/login')
   }
-}
-
-
-//SENDGRID MAIL
-const sendMail = async(url, inputData) => {
-  console.log("INTO SENDMAIL")
-  pathToAttachment = `${__dirname}/test.pptx`;
-  attachment = await fs.readFileSync(pathToAttachment).toString("base64");
-  const msg = {
-    to: `${inputData.sendZipEmail}`,
-    // to: `${inputData.sendZipEmail}`,
-    from: 'admin@sgy.co', // Use the email address or domain you verified above
-    subject: `${inputData.batchName} --- Here is your batch of screenshots!`,
-    text: `${inputData.batchName} \n${inputData.batchUrls}\n\nThe PPTX file is attached!`,
-    attachments: [
-      {
-        content: attachment,
-        fileName: 'test.pptx',
-        type: 'application/pptx',
-        dispostion: 'attachment'
-      }
-    ]
-  };
-  await sgMail
-    .send(msg)
-    .then(() => {}, error => {
-      console.error(error);
-  
-      if (error.response) {
-        console.error(error.response.body)
-      }
-    });
-  console.log("Email Sent")
-  await fs.unlink('test.pptx', (err) => {
-    if (err) throw err;
-    console.log('test ppt was deleted');
-  });
-}
-
-
-async function createPPT(data){
-  // 1. Create a new Presentation
-  // const dataArr = data.batchUrls.split(" ").filter(i => i)
-  // console.log('PPT',data)
-  let pres = await new pptxgen();
-  // 2. Add a Slide
-  for (i=0;i<data.length;i++){
-    // console.log(data[i].url)
-    let slide = await pres.addSlide();
-    let rows = []
-    // rows.push(["First", "Second", "Third"]);
-    rows.push([{ text: `TITLE: ${data[i].title}`, options: { color: "666666" } }]);
-    rows.push([{ text: `PRICE: ${data[i].price}`, options: { color: "666666" } }]);
-    rows.push([{ text: `STARS: ${data[i].stars}`, options: { color: "666666" } }]);
-    rows.push([{ text: `STYLE: ${data[i].style}`, options: { color: "666666" } }]);
-    rows.push([{ text: `URL: ${data[i].url}`, options: { color: "666666" } }]);
-    rows.push([{ text: `FEATURES: ${data[i].features}`, options: { color: "666666" } }]);
-
-    await slide
-    .addImage({
-      path: data[i].images,
-      x: 0,
-      y: 1,
-      w: 4,
-      h: 4,
-      // sizing: { 
-      //   type:'contain',
-      //   w: 4,
-      //   h: 4,
-      // }
-    })
-    .addTable(rows, { x: 4.5, y: 0, w: "50%", color: "363636", fontSize: 10 })
-    // .addText(`TITLE: ${data[i].title}`,       { x: 4.5, y: 0, w: "40%", fill: "ffffff", color: "666666", fontSize:12, margin: .2 })
-    // .addText(`PRICE: ${data[i].price}`,       { x: 4.5, y: 1, w: "40%", fill: "ffffff", color: "666666", fontSize:12, margin: .2 })
-    // .addText(`URL: ${data[i].url}`,           { x: 4.5, y: 1.5, w: "40%", fill: "ffffff", color: "666666", fontSize:12, margin: .2 })
-    // .addText(`FEATURES: ${data[i].features}`, { x: 4.5, y: 2, w: "40%", fill: "ffffff", color: "666666", fontSize:10, margin: .2 })
-    console.log("slide created")
-  }
-  await pres.writeFile("test.pptx")
-  console.log('pptx saved')
-  //delete the folder with images
-  // await rimraf("dist", await function () { console.log("dist deleted"); });
-  // await sendMail(zipURL, inputData)
 }
