@@ -60,8 +60,9 @@ app.get('/', verifyToken, function(req, res){
 //sends data from form to screenshot.js and then redirects back to the form page
 app.post('/screenshot', verifyToken, (req, res) => {
   const { sendZipEmail, size, singleUrl, batchName, message, screenWidth, screenHeight} = req.body
+  let emailArr = sendZipEmail.split(' ').filter(i => i)
   var ssData = {
-    sendZipEmail: sendZipEmail,
+    sendZipEmail: emailArr,
     batchUrls: singleUrl,
     screenshotSize: size,
     batchName: batchName,
@@ -185,7 +186,7 @@ const sendMail = async(inputData, origData, batchName) => {
   pathToAttachment = `${__dirname}/${batchName}.pptx`;
   attachment = await fs.readFileSync(pathToAttachment).toString("base64");
   const msg = {
-    to: `${origData.sendZipEmail}`,
+    to: origData.sendZipEmail,
     from: 'admin@sgy.co',
     subject: `${origData.batchName} --- Here is your batch`,
     html: `

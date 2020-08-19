@@ -4,19 +4,20 @@
 }
 h1 {
   text-align: center;
+  margin: 0;
 }
 .examples-box {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin: 50px;
+  /* margin: 50px; */
   width: 100%;
 }
 .examples-box div{
-  /* margin: 50px; */
+  margin: 20px 0px;
 }
 p {
-  /* text-align: center; */
+  text-align: center;
 }
 .btn {
   text-align: center;
