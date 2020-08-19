@@ -85,15 +85,14 @@ const scrape = async (data) => {
   await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox', '--window-size=1920,1080','--user-agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3312.0 Safari/537.36"'] })
   .then(async browser => {
     //loop through the urls
+    const page = await browser.newPage();
     for (i = 0; i < formattedUrlsArr.length; i++) {
-      console.log("working on... ",formattedUrlsArr[i])
-      const page = await browser.newPage();
+      console.log(`working on ${i+1} of ${formattedUrlsArr.length} ... `,formattedUrlsArr[i])
       await page.goto(formattedUrlsArr[i]);
       await page.waitForSelector('body');
   
       var productInfo = await page.evaluate(() => {
         
-        /* Get product title */
         let title = document.querySelector('#productTitle') !== null ? document.querySelector('#productTitle').innerText : 'no title'
         let price = document.querySelector('#priceblock_saleprice') !== null ? document.querySelector('#priceblock_saleprice').innerText : document.querySelector('#priceblock_ourprice') !== null ? document.querySelector('#priceblock_ourprice').innerText : 'no price given';
         let images = document.querySelector('.a-dynamic-image') !== null ? document.querySelector('.a-dynamic-image').src : `no image`
@@ -120,16 +119,13 @@ const scrape = async (data) => {
         return product;
       });
       productInfo.url = formattedUrlsArr[i]
-      // console.log(productInfo.features)
       scrapedData.push(productInfo);
-      page.close();
     }
+    // page.close();
     await browser.close();
-    // return scrapedData
   }).catch(function(error) {
     console.error(error);
   });
-  // await console.log('scraped data', scrapedData)
   createPPT(scrapedData, data)
   return scrapedData
 }
@@ -140,9 +136,7 @@ const scrape = async (data) => {
 async function createPPT(data, origData){
   // 1. Create a new Presentation
   let pres = await new pptxgen();
-  // 2. Add a Slide
   for (i=0;i<data.length;i++){
-    // console.log(data[i].features)
     let slide = await pres.addSlide();
     let rows = []
     // rows.push(["First", "Second", "Third"]);
@@ -151,7 +145,6 @@ async function createPPT(data, origData){
     rows.push([{ text: `${data[i].price}`, options: { color: "2d2d2d", fontSize: 10 } }]);
     rows.push([{ text: `${data[i].stars}`, options: { color: "2d2d2d", fontSize: 10 } }]);
     rows.push([{ text: `${data[i].style}`, options: { color: "2d2d2d", fontSize: 10 } }]);
-    // rows.push([{ text: `URL: ${data[i].url}`, options: { color: "666666"} }]);
 
     for (j = 1; j < data[i].features.length; j++) {
       rows.push([{ text: `${data[i].features[j]}`, options: { color: "2d2d2d", fontSize: 8 } }]);
@@ -181,8 +174,6 @@ async function createPPT(data, origData){
   let batchName = origData.batchName ? origData.batchName : "batch"
   await pres.writeFile(`${batchName}.pptx`)
   await console.log(`${batchName}.pptx saved`)
-  //delete the folder with images
-  // await rimraf("dist", await function () { console.log("dist deleted"); });
   await sendMail(data, origData, batchName)
 }
 
@@ -191,14 +182,12 @@ async function createPPT(data, origData){
 
 //SENDGRID MAIL
 const sendMail = async(inputData, origData, batchName) => {
-  // console.log(origData)
   pathToAttachment = `${__dirname}/${batchName}.pptx`;
   attachment = await fs.readFileSync(pathToAttachment).toString("base64");
   const msg = {
     to: `${origData.sendZipEmail}`,
     from: 'admin@sgy.co',
     subject: `${origData.batchName} --- Here is your batch`,
-    // text: `${origData.batchName} \n${origData.batchUrls}\n\nThe PPTX file is attached! \n\n ${origData.message}`,
     html: `
       <h1>${origData.batchName}</h1>
       <h3>The PPTX file is attached!</h3>
@@ -230,6 +219,14 @@ const sendMail = async(inputData, origData, batchName) => {
     console.log(`${batchName}.pptx was deleted`);
   });
 }
+
+
+
+// -----------------------------------------------------------
+
+// -----------------------------------------------------------
+
+// -----------------------------------------------------------
 
 
 
