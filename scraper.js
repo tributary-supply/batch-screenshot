@@ -59,24 +59,17 @@ app.get('/', verifyToken, function(req, res){
 })
 //sends data from form to screenshot.js and then redirects back to the form page
 app.post('/screenshot', verifyToken, (req, res) => {
-  const { sendZipEmail, size, singleUrl, batchName, screenWidth, screenHeight} = req.body
+  const { sendZipEmail, size, singleUrl, batchName, message, screenWidth, screenHeight} = req.body
   var ssData = {
     sendZipEmail: sendZipEmail,
     batchUrls: singleUrl,
     screenshotSize: size,
     batchName: batchName,
+    message: message,
     // screenWidth: screenWidth,
     // screenHeight: screenHeight
   }
-  // async () => {
-    scrape(ssData)
-    // createPPT(scrapeData)
-  // }
-
-  //send data back to frontend?
-  //send email
-  // sendMail()
-
+  scrape(ssData)
   res.redirect('/success')
 })
 
@@ -93,7 +86,7 @@ const scrape = async (data) => {
   .then(async browser => {
     //loop through the urls
     for (i = 0; i < formattedUrlsArr.length; i++) {
-      console.log("formattedUrlsArr[i]",formattedUrlsArr[i])
+      console.log("working on... ",formattedUrlsArr[i])
       const page = await browser.newPage();
       await page.goto(formattedUrlsArr[i]);
       await page.waitForSelector('body');
@@ -154,13 +147,13 @@ async function createPPT(data, origData){
     // rows.push(["First", "Second", "Third"]);
     rows.push([{ text: `TITLE: ${data[i].title}`, options: { color: "2d2d2d", bold: true, fontSize: 12 } }]);
     rows.push([{ text: `MADE BY: ${data[i].byLine}`, options: { color: "666666", fontSize: 8} }]);
-    rows.push([{ text: `${data[i].price}`, options: { color: "2d2d2d" } }]);
-    rows.push([{ text: `${data[i].stars}`, options: { color: "2d2d2d" } }]);
-    rows.push([{ text: `${data[i].style}`, options: { color: "2d2d2d" } }]);
+    rows.push([{ text: `${data[i].price}`, options: { color: "2d2d2d", fontSize: 10 } }]);
+    rows.push([{ text: `${data[i].stars}`, options: { color: "2d2d2d", fontSize: 10 } }]);
+    rows.push([{ text: `${data[i].style}`, options: { color: "2d2d2d", fontSize: 10 } }]);
     // rows.push([{ text: `URL: ${data[i].url}`, options: { color: "666666"} }]);
 
     for (j = 1; j < data[i].features.length; j++) {
-      rows.push([{ text: `${data[i].features[j]}`, options: { color: "2d2d2d", fontSize: 9 } }]);
+      rows.push([{ text: `${data[i].features[j]}`, options: { color: "2d2d2d", fontSize: 8 } }]);
     };
 
     await slide
@@ -176,31 +169,39 @@ async function createPPT(data, origData){
       //   h: 4,
       // }
     })
-    .addTable(rows, { x: 4.2, y: 0.2, w: "55%", fontSize: 10 })
+    .addTable(rows, { x: 4.2, y: 0.2, w: "55%", fontFace:'Helvetica' })
     .addText(`Category: ${data[i].category}`, { x: .2, y: .1, w: "35%", fill: "ffffff", color: "666666", fontSize:14, margin: .2 })
     .addText(`URL: ${data[i].url}`, { x: .2, y: .4, w: "35%", fill: "ffffff", color: "666666", fontSize:14, margin: .2 })
     console.log("slide created")
   }
-  await pres.writeFile(`${origData.batchName}.pptx`)
-  await console.log('pptx saved')
+  let batchName = origData.batchName ? origData.batchName : "batch"
+  await pres.writeFile(`${batchName}.pptx`)
+  await console.log(`${batchName}.pptx saved`)
   //delete the folder with images
   // await rimraf("dist", await function () { console.log("dist deleted"); });
-  await sendMail(data, origData)
+  await sendMail(data, origData, batchName)
 }
 
 
 
 
 //SENDGRID MAIL
-const sendMail = async(inputData, origData) => {
+const sendMail = async(inputData, origData, batchName) => {
   // console.log(origData)
-  pathToAttachment = `${__dirname}/${origData.batchName}.pptx`;
+  pathToAttachment = `${__dirname}/${batchName}.pptx`;
   attachment = await fs.readFileSync(pathToAttachment).toString("base64");
   const msg = {
     to: `${origData.sendZipEmail}`,
     from: 'admin@sgy.co',
     subject: `${origData.batchName} --- Here is your batch`,
-    text: `${origData.batchName} \n${origData.batchUrls}\n\nThe PPTX file is attached!`,
+    // text: `${origData.batchName} \n${origData.batchUrls}\n\nThe PPTX file is attached! \n\n ${origData.message}`,
+    html: `
+      <h1>${origData.batchName}</h1>
+      <h3>The PPTX file is attached!</h3>
+      <p> ${origData.message} </p>
+      <h4>ASID/URL List:</h4>
+      <p> ${origData.batchUrls} </p>
+      `,
     attachments: [
       {
         content: attachment,
@@ -220,9 +221,9 @@ const sendMail = async(inputData, origData) => {
       }
     });
   await console.log(`Email Sent to ${origData.sendZipEmail}`)
-  await fs.unlink(`${origData.batchName}.pptx`, (err) => {
+  await fs.unlink(`${batchName}.pptx`, (err) => {
     if (err) throw err;
-    console.log('pptx file was deleted');
+    console.log(`${batchName}.pptx was deleted`);
   });
 }
 

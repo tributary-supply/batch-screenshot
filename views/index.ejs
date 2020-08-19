@@ -7,7 +7,7 @@
   <title>Document</title>
 </head>
 <body>
-  <h1>BATCH SCREENSHOTS APP</h1>
+  <h1>BATCH URL TO PPTX APP</h1>
   <div class="examples-box">
     <div>
       <p class="directions">IMPORTANT: input SSID#s or URLS with a single space between each!</p>
@@ -19,23 +19,27 @@
     <label for="singleUrl">(REQUIRED) Enter list of ssids or urls:</label>
     <input name="singleUrl" type="text" required>
 
+    <label for="sendZipEmail">(REQUIRED) Enter email for zipped folder to be sent to:</label>
+    <input id="email-input" class="small-inputs" name="sendZipEmail" type="email" required>
+
     <label for="batchName">Name your batch</label>
     <input class="small-inputs" name="batchName" type="text">
 
-    <!-- <label for="screenWidth">Screen Width (default: 1600):</label>
-    <input id="screenWidth" class="small-inputs" name="screenWidth" type="number"> -->
+    <label for="message">Send a message in the email:</label>
+    <textarea id="msg-input" name="message" placeholder="Write something.." style="height:200px"></textarea>
+    <!-- <input class="msg-input" name="message" type="text"> -->
     
-    <!-- <label for="screenHeight">Screen Height (default: 1200):</label>
+    <!-- <label for="screenWidth">Screen Width (default: 1600):</label>
+    <input id="screenWidth" class="small-inputs" name="screenWidth" type="number">
+    
+    <label for="screenHeight">Screen Height (default: 1200):</label>
     <input id="screenHeight" class="small-inputs" name="screenHeight" type="number"> -->
     
-    <label for="size">Choose screen for only one screen's size or page for the entire page.</label>
+    <!-- <label for="size">Choose screen for only one screen's size or page for the entire page.</label>
     <select id="ss-size" class="small-inputs" name="size">
       <option value="screen">Screen</option>
-      <!-- <option value="page">Page</option> -->
-    </select>
-
-    <label for="sendZipEmail">(REQUIRED) Enter email for zipped folder to be sent to:</label>
-    <input id="email-input" class="small-inputs" name="sendZipEmail" type="email" required>
+      <option value="page">Page</option>
+    </select> -->
 
     <!-- <label for="mailSubject">(REQUIRED) Enter the subject of your email:</label>
     <input id="" class="small-inputs" name="mailSubject" type="text" required> -->

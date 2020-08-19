@@ -1,1 +1,1 @@
-web: node screenshot.js
+web: node scraper.js
