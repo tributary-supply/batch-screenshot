@@ -7,6 +7,7 @@ const ejs = require('ejs');
 const jwt = require('jsonwebtoken')
 const fs = require("fs");
 const puppeteer = require('puppeteer')
+const browshot = require('browshot');
 var validator = require('validator');
 var cookieParser = require('cookie-parser');
 // var nodemailer = require('nodemailer');
@@ -16,8 +17,12 @@ const decompress = require('decompress');
 const pptxgen = require('pptxgenjs');
 const { get } = require('http');
 var rimraf = require("rimraf");
+const ssUtils = require('./ss-utils/utils')
+const csv = require('./csv')
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+var client = new browshot(`${process.env.BROWSHOT_API_KEY}`);
+
 
 var app = express();
 var timeout;
@@ -59,18 +64,19 @@ app.get('/', verifyToken, function(req, res){
 })
 //sends data from form to screenshot.js and then redirects back to the form page
 app.post('/screenshot', verifyToken, (req, res) => {
-  const { sendZipEmail, size, singleUrl, batchName, message, screenWidth, screenHeight} = req.body
+  const { sendZipEmail, size, singleUrl, batchName, message, scrapeOrScreenshot, screenWidth, screenHeight} = req.body
   let emailArr = sendZipEmail.split(' ').filter(i => i)
   var ssData = {
     sendZipEmail: emailArr,
     batchUrls: singleUrl,
-    screenshotSize: size,
+    // screenshotSize: size,
     batchName: batchName,
     message: message,
+    scrapeOrScreenshot: scrapeOrScreenshot
     // screenWidth: screenWidth,
     // screenHeight: screenHeight
   }
-  scrape(ssData)
+  ssData.scrapeOrScreenshot == "scrape" ? scrape(ssData) : ssUtils.batchScreenShot(ssData);
   res.redirect('/success')
 })
 
@@ -101,21 +107,23 @@ const scrape = async (data) => {
         let style = document.querySelector('.selection') !== null ? document.querySelector('.selection').innerText : 'no style provided';
         let byLine = document.querySelector('#bylineInfo') !== null ? document.querySelector('#bylineInfo').innerText : 'no by line'
         let category = document.querySelector('#wayfinding-breadcrumbs_feature_div ul li:last-child span a') !== null ? document.querySelector('#wayfinding-breadcrumbs_feature_div ul li:last-child span a').innerText : 'no category'
-  
+        let asid = document.querySelector('#productDetails_detailBullets_sections1 tbody tr:first-child td') !== null ? document.querySelector('#productDetails_detailBullets_sections1 tbody tr:first-child td').innerText : 'no asid'
+
         let features = document.body.querySelectorAll('#feature-bullets ul li .a-list-item');
         let formattedFeatures = [];
         features.forEach((feature) => {
             formattedFeatures.push(feature.innerText);
         });
         var product = { 
+          "category": category,
           "title": title,
+          "asid": asid,
           "price": price,
-          "images": images,
           "stars": stars,
-          "features": formattedFeatures,
           "style": style,
           "byLine": byLine,
-          "category": category
+          "images": images,
+          "features": formattedFeatures,
         };
         return product;
       });
@@ -175,6 +183,7 @@ async function createPPT(data, origData){
   let batchName = origData.batchName ? origData.batchName : "batch"
   await pres.writeFile(`${batchName}.pptx`)
   await console.log(`${batchName}.pptx saved`)
+  await csv.createCSV(data, batchName)
   await sendMail(data, origData, batchName)
 }
 
@@ -185,10 +194,14 @@ async function createPPT(data, origData){
 const sendMail = async(inputData, origData, batchName) => {
   pathToAttachment = `${__dirname}/${batchName}.pptx`;
   attachment = await fs.readFileSync(pathToAttachment).toString("base64");
+  
+  pathToAttachment2 = `${__dirname}/${batchName}.csv`;
+  attachment2 = await fs.readFileSync(pathToAttachment2).toString("base64");
+  
   const msg = {
     to: origData.sendZipEmail,
     from: 'admin@sgy.co',
-    subject: `${origData.batchName} --- Here is your batch`,
+    subject: `${origData.batchName} --- Here is your powerpoint presentation!`,
     html: `
       <h1>${origData.batchName}</h1>
       <h3>The PPTX file is attached!</h3>
@@ -201,6 +214,12 @@ const sendMail = async(inputData, origData, batchName) => {
         content: attachment,
         fileName: `${origData.batchName}.pptx`,
         type: 'application/pptx',
+        dispostion: 'attachment'
+      },
+      {
+        content: attachment2,
+        fileName: `${origData.batchName}.csv`,
+        type: 'text/csv',
         dispostion: 'attachment'
       }
     ]
@@ -218,6 +237,10 @@ const sendMail = async(inputData, origData, batchName) => {
   await fs.unlink(`${batchName}.pptx`, (err) => {
     if (err) throw err;
     console.log(`${batchName}.pptx was deleted`);
+  });
+  await fs.unlink(`${batchName}.csv`, (err) => {
+    if (err) throw err;
+    console.log(`${batchName}.csv was deleted`);
   });
 }
 

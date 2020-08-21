@@ -13,7 +13,7 @@ h1 {
   /* margin: 50px; */
   width: 100%;
 }
-.examples-box div{
+.examples-box div {
   margin: 20px 0px;
 }
 p {
@@ -35,7 +35,6 @@ a:hover {
   border: #45a049 1px solid;
   background: white;
   color: #45a049;
-
 }
 
 #form {
@@ -65,7 +64,6 @@ input[type=submit] {
 }
 input[type=submit]:hover {
   background-color: #45a049;
-
 }
 
 @media only screen and (min-width: 700px) {

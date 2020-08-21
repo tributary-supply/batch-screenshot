@@ -195,6 +195,7 @@ function checkBatch(id, data) {
 const sendMail = async(url, inputData) => {
   console.log("INTO SENDMAIL")
   pathToAttachment = `${__dirname}/test.pptx`;
+  console.log("pathToAttachment", pathToAttachment)
   attachment = await fs.readFileSync(pathToAttachment).toString("base64");
   const msg = {
     to: `${inputData.sendZipEmail}`,
