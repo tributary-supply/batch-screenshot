@@ -18,7 +18,8 @@ const pptxgen = require('pptxgenjs');
 const { get } = require('http');
 var rimraf = require("rimraf");
 const ssUtils = require('./ss-utils/utils')
-const csv = require('./csv')
+const csv = require('./csv');
+const { count } = require('console');
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 var client = new browshot(`${process.env.BROWSHOT_API_KEY}`);
@@ -50,7 +51,7 @@ app.post('/login', (req, res) => {
   }
   if (req.body.password === process.env.APP_PASSWORD){
     var token = jwt.sign({pw : pw}, "secretkey", {expiresIn: '30s'} )
-    res.cookie('JWT', token, {maxAge: 300000})
+    res.cookie('JWT', token, {maxAge: 3000000})
     res.redirect('/')
   } else {
     console.log("PASSWORD IS INCORRECT")
@@ -87,6 +88,8 @@ app.listen(PORT, function(){
 
 const scrape = async (data) => {
   const formattedUrlsArr = await formatData(data.batchUrls)
+  // const formattedUrlsArr = ['https://www.amazon.com/dp/B07ZX6P2PT']
+
   //this arr is for data objs from all urls
   let scrapedData = []
   await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox', '--window-size=1920,1080','--user-agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3312.0 Safari/537.36"'] })
@@ -97,9 +100,12 @@ const scrape = async (data) => {
       console.log(`working on ${i+1} of ${formattedUrlsArr.length} ... `,formattedUrlsArr[i])
       await page.goto(formattedUrlsArr[i]);
       await page.waitForSelector('body');
-  
-      var productInfo = await page.evaluate(() => {
-        
+
+      // let aisnOrig = formattedUrlsArr[i]
+      // console.log("formattedUrlsArr",formattedUrlsArr[i])
+      let reviewsLink;
+
+      var productInfo = await page.evaluate(async () => {
         let title = document.querySelector('#productTitle') !== null ? document.querySelector('#productTitle').innerText : 'no title'
         let price = document.querySelector('#priceblock_saleprice') !== null ? document.querySelector('#priceblock_saleprice').innerText : document.querySelector('#priceblock_ourprice') !== null ? document.querySelector('#priceblock_ourprice').innerText : 'no price given';
         let images = document.querySelector('.a-dynamic-image') !== null ? document.querySelector('.a-dynamic-image').src : `no image`
@@ -107,35 +113,139 @@ const scrape = async (data) => {
         let style = document.querySelector('.selection') !== null ? document.querySelector('.selection').innerText : 'no style provided';
         let byLine = document.querySelector('#bylineInfo') !== null ? document.querySelector('#bylineInfo').innerText : 'no by line'
         let category = document.querySelector('#wayfinding-breadcrumbs_feature_div ul li:last-child span a') !== null ? document.querySelector('#wayfinding-breadcrumbs_feature_div ul li:last-child span a').innerText : 'no category'
-        let asid = document.querySelector('#productDetails_detailBullets_sections1 tbody tr:first-child td') !== null ? document.querySelector('#productDetails_detailBullets_sections1 tbody tr:first-child td').innerText : 'no asid'
+        let asin = document.querySelector('#productDetails_detailBullets_sections1 tbody tr:first-child td') !== null ? document.querySelector('#productDetails_detailBullets_sections1 tbody tr:first-child td').innerText : "not available"
+        
+        let description = document.querySelector('#productDescription')
+        let altImgs = document.querySelectorAll('#altImages > ul .item')
+        let hasAPlusContent = document.querySelector('#aplus_feature_div') ? "yes" : "no"
+        let ratingCount = document.querySelector('#acrCustomerReviewText').innerText
+        
+        reviewsLink = document.querySelector('#cr-pagination-footer-0 > a') !== null ? document.querySelector('#cr-pagination-footer-0 > a').getAttribute('href') : document.querySelector('#reviews-medley-footer > div > a').getAttribute('href')
 
         let features = document.body.querySelectorAll('#feature-bullets ul li .a-list-item');
         let formattedFeatures = [];
         features.forEach((feature) => {
             formattedFeatures.push(feature.innerText);
         });
+
+        // let relatedDesc = document.querySelectorAll('#sims-consolidated-1_feature_div .sims-fbt-rows ul li a')  //contain the descriptions
+        // let relatedLinks = document.querySelectorAll('#sims-consolidated-1_feature_div .sims-fbt-rows ul li a')  //contain the ASIDS
+        // let relatedDivs = document.querySelectorAll('#sims-consolidated-1_feature_div .sims-fbt-rows ul li:not(:first-child)')  //contain the ASIDS
+
+        // let related = [] //array of related products objects
+        // let relCount = 0
+        // relatedDivs.forEach(div => {
+        //   let dataObj = JSON.parse(div.getAttribute('data-p13n-asin-metadata'))
+        //   let price = dataObj.price
+        //   let asin = dataObj.asin
+        //   let desc;
+        //   let href;
+        //   relatedLinks.forEach(link => {
+        //     if(!link.innerText.includes('Details') && link.getAttribute('href').includes(asin)){
+        //       desc = link.innerText
+        //       href = link.getAttribute('href')
+        //     }
+        //   })
+        //   if(relCount == 0){
+        //     related.push({
+        //       relAsin: dataObj.asin,
+        //       relPrice: dataObj.price,
+        //       relDescription: desc
+        //     })
+        //     relCount++
+        //   } else {
+        //     related.push({
+        //       relAsin2: dataObj.asin,
+        //       relPrice2: dataObj.price,
+        //       relDescription2: desc
+        //     })
+        //     relCount = 0
+        //   }
+        // })
+        // console.log("RELATED", related)
+
         var product = { 
+          "asin": asin,
+          "price": price,
           "category": category,
           "title": title,
-          "asid": asid,
-          "price": price,
+          "altImages": altImgs.length,
+          "images": images,
+          "aPlusContent": hasAPlusContent,
+          "descriptionLength": description.length,
+          "bulletCount": features.length - 1,
+          "features": formattedFeatures,
+          "ratingCount": ratingCount,
+          "reviewCount": reviewsLink,
           "stars": stars,
           "style": style,
           "byLine": byLine,
-          "images": images,
-          "features": formattedFeatures,
+
+
+          // "relatedProducts": related,
+
+          // "relAsin" : related.length > 0 ? related[0].relAsin : 'none',
+          // "relPrice" : related.length > 0 ? related[0].relPrice : 'none',
+          // "relDescription" : related.length > 0 ? related[0].relDescription : 'none',
+
+          // "relAsin2" : related.length > 1 ? related[1].relAsin2 : 'none',
+          // "relPrice2" : related.length > 1 ? related[1].relPrice2 : 'none',
+          // "relDescription2" : related.length > 1 ? related[1].relDescription2 : 'none',
+
+
+          // "rel asin" : related[0].relAsin ? related[0].relAsin : 'none',
+          // "rel price": related[0].relPrice,
+          // "rel description": related[0].relDescription,
+          // "rel asin 2" : related[1].relAsin2,
+          // "rel price 2": related[1].relPrice2,
+          // "rel description 2": related[1].relDescription2
         };
         return product;
       });
-      productInfo.url = formattedUrlsArr[i]
+      productInfo.origAsin = formattedUrlsArr[i].split("/dp/")[1]
+
+      console.log(`https://www.amazon.com${productInfo.reviewCount}`)
+      await page.goto(`https://www.amazon.com${productInfo.reviewCount}`);
+      await page.waitForSelector('body');
+
+      productInfo.reviewCount = await page.evaluate(async () => {
+        let result = await document.querySelector('#filter-info-section div span').innerText
+        result = result.split(' | ')[1].split(' ')[0]
+        return result
+      })
+
+      console.log("prioductINFFOOO", productInfo)
       scrapedData.push(productInfo);
+      // productInfo.relatedProducts.forEach(product =>{
+      //   scrapedData.push(product)
+      // })
     }
+    console.log("SCRAPE", scrapedData)
     // page.close();
     await browser.close();
   }).catch(function(error) {
     console.error(error);
   });
-  createPPT(scrapedData, data)
+  
+  //testing
+  let batchName = "batch"
+  // scrapedData.splice(0,0,{  //this adds a header row
+  //   "title": '',
+  //   "asid": '',
+  //   "price": '',
+  //   "rel asin" : '',
+  //   "rel price": '',
+  //   "rel description": '',
+  //   "rel asin 2" : '',
+  //   "rel price 2": '',
+  //   "rel description 2": ''
+  // })
+  // createPPT(scrapedData, data)  //ORIGINAL PATH
+  // await csv.createCSV(scrapedData, 'testing-2')
+  await createPPT(scrapedData, data)
+  // await csv.createCSV(scrapedData, data.batchName)
+
+  await console.log('finished')
   return scrapedData
 }
 
@@ -186,8 +296,6 @@ async function createPPT(data, origData){
   await csv.createCSV(data, batchName)
   await sendMail(data, origData, batchName)
 }
-
-
 
 
 //SENDGRID MAIL
@@ -270,9 +378,10 @@ function formatData(data){
     }
   }
   // return dataArr.join('')
-  console.log("FORMATTED",dataArr)
+  // console.log("FORMATTED",dataArr)
   return dataArr
 }
+
 function verifyToken(req, res, next) {
   const bearerHeader = req.cookies.JWT
   // console.log("COOKIED TOKEN", req.cookies.JWT)
