@@ -305,7 +305,11 @@ const sendMail = async(inputData, origData, batchName) => {
   
   pathToAttachment2 = `${__dirname}/${batchName}.csv`;
   attachment2 = await fs.readFileSync(pathToAttachment2).toString("base64");
-  
+
+  let pptName = `${origData.batchName}.pptx`
+  let csvName = `${origData.batchName}.csv`
+  console.log("BATCHNAMMEEEEEE", pptName, csvName)
+
   const msg = {
     to: origData.sendZipEmail,
     from: 'admin@sgy.co',
@@ -320,15 +324,15 @@ const sendMail = async(inputData, origData, batchName) => {
     attachments: [
       {
         content: attachment,
-        fileName: `${origData.batchName}.pptx`,
+        filename: pptName,
         type: 'application/pptx',
-        dispostion: 'attachment'
+        disposition: 'attachment'
       },
       {
         content: attachment2,
-        fileName: `${origData.batchName}.csv`,
+        filename: csvName,
         type: 'text/csv',
-        dispostion: 'attachment'
+        disposition: 'attachment'
       }
     ]
   };
