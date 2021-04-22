@@ -95,6 +95,7 @@ const scrape = async (data) => {
   await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox', '--window-size=1920,1080','--user-agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3312.0 Safari/537.36"'] })
   .then(async browser => {
     //loop through the urls
+    debugger
     const page = await browser.newPage();
     for (i = 0; i < formattedUrlsArr.length; i++) {
       console.log(`working on ${i+1} of ${formattedUrlsArr.length} ... `,formattedUrlsArr[i])
@@ -114,6 +115,10 @@ const scrape = async (data) => {
         let byLine = document.querySelector('#bylineInfo') !== null ? document.querySelector('#bylineInfo').innerText : 'no by line'
         let category = document.querySelector('#wayfinding-breadcrumbs_feature_div ul li:last-child span a') !== null ? document.querySelector('#wayfinding-breadcrumbs_feature_div ul li:last-child span a').innerText : 'no category'
         let asin = document.querySelector('#productDetails_detailBullets_sections1 tbody tr:first-child td') !== null ? document.querySelector('#productDetails_detailBullets_sections1 tbody tr:first-child td').innerText : "not available"
+
+        let buyBox = document.querySelector('#buy-now-button') !== null ? 'yes': 'no'
+        let shipsFrom = document.querySelector('#tabular-buybox-container') !== null ? document.querySelector('#tabular-buybox-container').innerHTML.includes('Amazon.com') ? 'yes': 'no' : 'doesnt exist';
+        let availability = document.querySelector('#availability span') !== null ? document.querySelector('#availability span').innerText : 'no'
         
         let description = document.querySelector('#productDescription')
         let altImgs = document.querySelectorAll('#altImages > ul .item')
@@ -167,6 +172,9 @@ const scrape = async (data) => {
         var product = { 
           "asin": asin,
           "price": price,
+          "buyBox": buyBox,
+          "shipsFrom": shipsFrom,
+          "availability": availability,
           "category": category,
           "title": title,
           "altImages": altImgs.length,
@@ -376,6 +384,7 @@ function formatData(data){
     //if it's not a url, it must be an ASID, so add the url
     if (!validator.isURL(dataArr[i])){
       dataArr[i] = `https://amazon.com/dp/${dataArr[i]}`
+      // console.log('formatted url', dataArr[i])
     } else {
       //otherwise just return it
       dataArr[i] = `${dataArr[i]}`
