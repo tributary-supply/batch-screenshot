@@ -107,22 +107,22 @@ const scrape = async (data) => {
       let reviewsLink;
 
       var productInfo = await page.evaluate(async () => {
-        let title = document.querySelector('#productTitle') !== null ? document.querySelector('#productTitle').innerText : 'no title'
-        let price = document.querySelector('#priceblock_saleprice') !== null ? document.querySelector('#priceblock_saleprice').innerText : document.querySelector('#priceblock_ourprice') !== null ? document.querySelector('#priceblock_ourprice').innerText : 'no price given';
-        let images = document.querySelector('.a-dynamic-image') !== null ? document.querySelector('.a-dynamic-image').src : `no image`
-        let stars = document.querySelector('.a-icon-alt') !== null ? document.querySelector('.a-icon-alt').innerText: `no star rating`
-        let style = document.querySelector('.selection') !== null ? document.querySelector('.selection').innerText : 'no style provided';
-        let byLine = document.querySelector('#bylineInfo') !== null ? document.querySelector('#bylineInfo').innerText : 'no by line'
-        let category = document.querySelector('#wayfinding-breadcrumbs_feature_div ul li:last-child span a') !== null ? document.querySelector('#wayfinding-breadcrumbs_feature_div ul li:last-child span a').innerText : 'no category'
-        let asin = document.querySelector('#productDetails_detailBullets_sections1 tbody tr:first-child td') !== null ? document.querySelector('#productDetails_detailBullets_sections1 tbody tr:first-child td').innerText : "not available"
+        let title = document.querySelector('#productTitle') !== null ? document.querySelector('#productTitle').innerText : 'NULL'
+        let price = document.querySelector('#priceblock_saleprice') !== null ? document.querySelector('#priceblock_saleprice').innerText : document.querySelector('#priceblock_ourprice') !== null ? document.querySelector('#priceblock_ourprice').innerText : 'NULL';
+        let images = document.querySelector('.a-dynamic-image') !== null ? document.querySelector('.a-dynamic-image').src : `NULL`
+        let stars = document.querySelector('.a-icon-alt') !== null ? document.querySelector('.a-icon-alt').innerText: `NULL`
+        let style = document.querySelector('.selection') !== null ? document.querySelector('.selection').innerText : 'NULL';
+        let byLine = document.querySelector('#bylineInfo') !== null ? document.querySelector('#bylineInfo').innerText : 'NULL'
+        let category = document.querySelector('#wayfinding-breadcrumbs_feature_div ul li:last-child span a') !== null ? document.querySelector('#wayfinding-breadcrumbs_feature_div ul li:last-child span a').innerText : 'NULL'
+        let asin = document.querySelector('#productDetails_detailBullets_sections1 tbody tr:first-child td') !== null ? document.querySelector('#productDetails_detailBullets_sections1 tbody tr:first-child td').innerText : "NULL"
 
-        let buyBox = document.querySelector('#buy-now-button') !== null ? 'yes': 'no'
-        let shipsFrom = document.querySelector('#tabular-buybox-container') !== null ? document.querySelector('#tabular-buybox-container').innerHTML.includes('Amazon.com') ? 'yes': 'no' : 'doesnt exist';
-        let availability = document.querySelector('#availability span') !== null ? document.querySelector('#availability span').innerText : 'no'
+        let buyBox = document.querySelector('#buy-now-button') !== null ? 'yes': 'NULL'
+        let shipsFrom = document.querySelector('#tabular-buybox-container') !== null ? document.querySelector('#tabular-buybox-container').innerHTML.includes('Amazon.com') ? 'yes': 'NULL' : 'NULL';
+        let availability = document.querySelector('#availability span') !== null ? document.querySelector('#availability span').innerText : 'NULL'
         
         let description = document.querySelector('#productDescription')
         let altImgs = document.querySelectorAll('#altImages > ul .item')
-        let hasAPlusContent = document.querySelector('#aplus_feature_div') ? "yes" : "no"
+        let hasAPlusContent = document.querySelector('#aplus_feature_div') ? "yes" : "NULL"
         let ratingCount = document.querySelector('#acrCustomerReviewText').innerText
         
         reviewsLink = document.querySelector('#cr-pagination-footer-0 > a') !== null ? document.querySelector('#cr-pagination-footer-0 > a').getAttribute('href') : document.querySelector('#reviews-medley-footer > div > a').getAttribute('href')
@@ -302,6 +302,7 @@ async function createPPT(data, origData){
   await pres.writeFile(`${batchName}.pptx`)
   await console.log(`${batchName}.pptx saved`)
   await csv.createCSV(data, batchName)
+  await csv.createErrorCSV(data, batchName)
   await sendMail(data, origData, batchName)
 }
 
@@ -314,9 +315,13 @@ const sendMail = async(inputData, origData, batchName) => {
   pathToAttachment2 = `${__dirname}/${batchName}.csv`;
   attachment2 = await fs.readFileSync(pathToAttachment2).toString("base64");
 
+  pathToAttachment3 = `${__dirname}/${batchName}-issues.csv`;
+  attachment3 = await fs.readFileSync(pathToAttachment3).toString("base64");
+
   let pptName = `${origData.batchName}.pptx`
   let csvName = `${origData.batchName}.csv`
-  console.log("BATCHNAMMEEEEEE", pptName, csvName)
+  let csvIssuesName = `${origData.batchName}-issues.csv`
+  console.log("BATCHNAMMEEEEEE", pptName, csvName, csvIssuesName)
 
   const msg = {
     to: origData.sendZipEmail,
@@ -341,6 +346,12 @@ const sendMail = async(inputData, origData, batchName) => {
         filename: csvName,
         type: 'text/csv',
         disposition: 'attachment'
+      },
+      {
+        content: attachment3,
+        filename: csvIssuesName,
+        type: 'text/csv',
+        disposition: 'attachment'
       }
     ]
   };
@@ -361,6 +372,10 @@ const sendMail = async(inputData, origData, batchName) => {
   await fs.unlink(`${batchName}.csv`, (err) => {
     if (err) throw err;
     console.log(`${batchName}.csv was deleted`);
+  });
+  await fs.unlink(`${batchName}-issues.csv`, (err) => {
+    if (err) throw err;
+    console.log(`${batchName}-issues.csv was deleted`);
   });
 }
 
