@@ -1,7 +1,8 @@
 require('dotenv').config();
 var PORT = process.env.PORT || 3000;
 var express = require('express');
-const bodyParser = require("body-parser");
+const MongoClient = require('mongodb').MongoClient;
+// const bodyParser = require("body-parser");
 const cors = require('cors');
 const ejs = require('ejs');
 const jwt = require('jsonwebtoken')
@@ -12,27 +13,52 @@ var validator = require('validator');
 var cookieParser = require('cookie-parser');
 // var nodemailer = require('nodemailer');
 const sgMail = require('@sendgrid/mail');
-const { DownloaderHelper } = require('node-downloader-helper');
+// const { DownloaderHelper } = require('node-downloader-helper');
 const decompress = require('decompress');
 const pptxgen = require('pptxgenjs');
-const { get } = require('http');
+// const { get } = require('http');
 var rimraf = require("rimraf");
 const ssUtils = require('./ss-utils/utils')
 const csv = require('./csv');
-const { count } = require('console');
+// const { count } = require('console');
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 var client = new browshot(`${process.env.BROWSHOT_API_KEY}`);
 
 
 var app = express();
+const url = process.env.MONGO_URL;
 var timeout;
 var emailZip = '';
+
+//mongo 
+// MongoClient.connect(url)
+// .then(async client =>{
+//   const db = client.db('scraper');
+//   const custCollection = db.collection('products');
+//   // const subsCollection = db.collection('subscriptions');
+//   const cronCollection = db.collection('cron');
+//   app.locals.custCollection = custCollection;  //these allow the routes to see the collection
+//   // app.locals.subsCollection = subsCollection;
+//   // app.locals.cronCollection = cronCollection;
+//   await mostRecentCron(cronCollection)
+// })
+// async function mostRecentCron(collection){
+//   const resultArr = []
+//   const cursor = await collection.find().sort({'date_run': -1}).limit(1)
+//   await cursor.forEach((doc, err)=> {
+//     resultArr.push(doc)
+//   }, function(){
+//     currentDate = JSON.parse(JSON.stringify(resultArr[0].date_run))
+//     currentDate = currentDate.split('T')[0]
+//   })
+// };
+
 
 //boilerplate
 app.use(express.static(__dirname + '/'));
 app.set('view engine','ejs');
-app.use(bodyParser.urlencoded({
+app.use(express.urlencoded({
   extended: true
 }));
 app.use(cors())
@@ -236,7 +262,7 @@ const scrape = async (data) => {
   });
   
   //testing
-  let batchName = "batch"
+  // let batchName = "batch"
   // scrapedData.splice(0,0,{  //this adds a header row
   //   "title": '',
   //   "asid": '',
@@ -250,9 +276,16 @@ const scrape = async (data) => {
   // })
   // createPPT(scrapedData, data)  //ORIGINAL PATH
   // await csv.createCSV(scrapedData, 'testing-2')
-  await createPPT(scrapedData, data)
   // await csv.createCSV(scrapedData, data.batchName)
-
+  
+  let batchName = data.batchName ? data.batchName : "batch"
+  const issueProducts = await findIssues(scrapedData)
+  
+  
+  await csv.createErrorCSV(issueProducts, batchName)
+  await csv.createCSV(scrapedData, batchName)
+  
+  await createPPT(scrapedData, data)
   await console.log('finished')
   return scrapedData
 }
@@ -301,8 +334,11 @@ async function createPPT(data, origData){
   let batchName = origData.batchName ? origData.batchName : "batch"
   await pres.writeFile(`${batchName}.pptx`)
   await console.log(`${batchName}.pptx saved`)
-  await csv.createCSV(data, batchName)
-  await csv.createErrorCSV(data, batchName)
+  // await csv.createCSV(data, batchName)
+
+  // const issueProducts = await findIssues(data)
+
+  // await csv.createErrorCSV(issueProducts, batchName)
   await sendMail(data, origData, batchName)
 }
 
@@ -391,6 +427,24 @@ const sendMail = async(inputData, origData, batchName) => {
 
 
 //UTILS -----------------------------------------------------------
+async function findIssues(data){
+  let issueData = []
+  data.map(item => {
+    console.log('availablitilty', item.availability, item.availability !== 'In Stock.')
+    if(item.price == 'NULL' || item.buyBox == 'NULL' || item.shipsFrom == 'NULL' || item.availability !== 'In Stock.'){
+      issueData.push({
+        asin: item.asin,
+        title: item.title,
+        price: item.price,
+        buybox: item.buyBox,
+        shipsFrom: item.shipsFrom,
+        availability: item.availability
+      })
+    }
+  })
+  return issueData
+}
+
 function formatData(data){
   const dataArr = data.split(" ").filter(i => i)
   for (i = 0; i < dataArr.length; i++){
