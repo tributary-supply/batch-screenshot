@@ -138,7 +138,7 @@ const scrape = async (data) => {
       })
 
       // console.log("prioductINFFOOO", productInfo)
-      scrapedData.push(productInfo);
+      await scrapedData.push(productInfo);
       // productInfo.relatedProducts.forEach(product =>{
       //   scrapedData.push(product)
       // })
@@ -184,7 +184,7 @@ const scrape = async (data) => {
 async function findIssues(data){
   let issueData = []
   data.map(item => {
-    console.log('availablitilty', item.availability, item.availability !== 'In Stock.')
+    // console.log('availablitilty', item.availability, item.availability !== 'In Stock.')
     if(item.price == 'NULL' || item.buyBox == 'NULL' || item.shipsFrom == 'NULL' || item.availability !== 'In Stock.'){
       issueData.push({
         asin: item.asin,
