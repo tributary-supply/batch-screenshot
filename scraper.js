@@ -21,6 +21,7 @@ var rimraf = require("rimraf");
 const ssUtils = require('./ss-utils/utils')
 const csv = require('./csv');
 // const { count } = require('console');
+const pingUrl = require('./cronJob')
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 var client = new browshot(`${process.env.BROWSHOT_API_KEY}`);
