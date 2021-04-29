@@ -1,3 +1,5 @@
+console.log('running cron')
+
 require('dotenv').config();
 const scrapeUtils = require('./scrapeUtils')
 const MongoClient = require('mongodb').MongoClient;
@@ -17,16 +19,19 @@ MongoClient.connect(url)
   const db = client.db('scraper');
   const productsCollection = db.collection('products');
   const cronCollection = db.collection('cron');
-  await updateDB(productsCollection, cronCollection)
-  let dbData = await getAllFromDB(productsCollection) //gets all and creates CSVs
+  await updateDB(productsCollection, cronCollection) //updates the products AND cron
+  let dbData = await getAllFromDB(productsCollection) //gets all data from db and creates CSVs
   await sendMail(dbData)
   // await console.log(dbData)
+  // await updateCronDb(cronCollection)
 })
 
 async function updateDB(productsCollection, cronCollection){
   console.log('running cron...')
   let scrapedData = await scrapeUtils.scrape(asins)
   await upsertMany(scrapedData, productsCollection)
+
+  await cronCollection.insertOne({"Date": todaysDate})
 
 }
 
