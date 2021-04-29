@@ -12,8 +12,8 @@ const scrape = async (data) => {
   await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox', '--window-size=1920,1080','--user-agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3312.0 Safari/537.36"'] })
   .then(async browser => {
     //loop through the urls
-    debugger
     const page = await browser.newPage();
+    await page.setDefaultNavigationTimeout(0);
     for (i = 0; i < formattedUrlsArr.length; i++) {
       console.log(`working on ${i+1} of ${formattedUrlsArr.length} ... `,formattedUrlsArr[i])
       await page.goto(formattedUrlsArr[i]);
