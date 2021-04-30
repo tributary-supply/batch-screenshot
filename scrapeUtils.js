@@ -4,7 +4,7 @@ const csv = require('./csv');
 
 const scrape = async (data) => {
   const formattedUrlsArr = await formatData(data)
-  console.log(formattedUrlsArr)
+  // console.log(formattedUrlsArr)
   // const formattedUrlsArr = ['https://www.amazon.com/dp/B07ZX6P2PT']
 
   //this arr is for data objs from all urls
@@ -14,13 +14,15 @@ const scrape = async (data) => {
     //loop through the urls
     const page = await browser.newPage();
     await page.setDefaultNavigationTimeout(0);
+
     for (i = 0; i < formattedUrlsArr.length; i++) {
       console.log(`working on ${i+1} of ${formattedUrlsArr.length} ... `,formattedUrlsArr[i])
-      await page.goto(formattedUrlsArr[i]);
+      await page.goto(formattedUrlsArr[i], {waitUntil: 'load',
+      // Remove the timeout
+      timeout: 0});
       await page.waitForSelector('body');
 
       // let aisnOrig = formattedUrlsArr[i]
-      // console.log("formattedUrlsArr",formattedUrlsArr[i])
       let reviewsLink;
 
       var productInfo = await page.evaluate(async () => {
@@ -84,7 +86,6 @@ const scrape = async (data) => {
         //     relCount = 0
         //   }
         // })
-        // console.log("RELATED", related)
 
         var product = { 
           "asin": asin,
@@ -127,7 +128,6 @@ const scrape = async (data) => {
       });
       // productInfo.origAsin = formattedUrlsArr[i].split("/dp/")[1]
 
-      // console.log(`https://www.amazon.com${productInfo.reviewCount}`)
       await page.goto(`https://www.amazon.com${productInfo.reviewCount}`);
       await page.waitForSelector('body');
 
@@ -137,13 +137,11 @@ const scrape = async (data) => {
         return result
       })
 
-      // console.log("prioductINFFOOO", productInfo)
       await scrapedData.push(productInfo);
       // productInfo.relatedProducts.forEach(product =>{
       //   scrapedData.push(product)
       // })
     }
-    // console.log("SCRAPE", scrapedData)
     // page.close();
     await browser.close();
   }).catch(function(error) {
@@ -184,7 +182,6 @@ const scrape = async (data) => {
 async function findIssues(data){
   let issueData = []
   data.map(item => {
-    // console.log('availablitilty', item.availability, item.availability !== 'In Stock.')
     if(item.price == 'NULL' || item.buyBox == 'NULL' || item.shipsFrom == 'NULL' || item.availability !== 'In Stock.'){
       issueData.push({
         asin: item.asin,
@@ -207,14 +204,12 @@ function formatData(dataArr){
     //if it's not a url, it must be an ASID, so add the url
     // if (!validator.isURL(dataArr[i])){
       dataArr[i] = `https://amazon.com/dp/${dataArr[i]}`
-      // console.log('formatted url', dataArr[i])
     // } else {
     //   //otherwise just return it
     //   dataArr[i] = `${dataArr[i]}`
     // }
   }
   // return dataArr.join('')
-  // console.log("FORMATTED",dataArr)
   return dataArr
 }
 

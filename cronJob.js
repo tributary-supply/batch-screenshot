@@ -13,5 +13,5 @@ const fetch = require('node-fetch');
   }, null, true, 'America/Los_Angeles');
   
   job.start();
-
+  
 })()
