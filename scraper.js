@@ -8,7 +8,12 @@ const cors = require('cors');
 const ejs = require('ejs');
 const jwt = require('jsonwebtoken')
 const fs = require("fs");
-const puppeteer = require('puppeteer')
+
+// const puppeteer = require('puppeteer')
+const puppeteer = require('puppeteer-extra')
+const StealthPlugin = require('puppeteer-extra-plugin-stealth')
+puppeteer.use(StealthPlugin())
+
 const browshot = require('browshot');
 var validator = require('validator');
 var cookieParser = require('cookie-parser');
@@ -117,19 +122,26 @@ app.listen(PORT, function(){
 
 const scrape = async (data) => {
   const formattedUrlsArr = await formatData(data.batchUrls)
-  // const formattedUrlsArr = ['https://www.amazon.com/dp/B07ZX6P2PT']
 
   //this arr is for data objs from all urls
   let scrapedData = []
   await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox', '--window-size=1920,1080','--user-agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3312.0 Safari/537.36"'] })
   .then(async browser => {
     //loop through the urls
-    debugger
     const page = await browser.newPage();
+    await page.setDefaultNavigationTimeout(0);
+
     for (i = 0; i < formattedUrlsArr.length; i++) {
-      console.log(`working on ${i+1} of ${formattedUrlsArr.length} ... `,formattedUrlsArr[i])
-      await page.goto(formattedUrlsArr[i]);
-      await page.waitForSelector('body');
+      try {
+        console.log(`working on ${i+1} of ${formattedUrlsArr.length} ... `,formattedUrlsArr[i])
+        await page.goto(formattedUrlsArr[i], 
+          // {waitUntil: 'load', timeout: 0}
+          );
+        await page.waitForSelector('body');
+        
+      } catch (error) {
+        console.log(error)
+      }
 
       // let aisnOrig = formattedUrlsArr[i]
       // console.log("formattedUrlsArr",formattedUrlsArr[i])
@@ -137,6 +149,7 @@ const scrape = async (data) => {
 
       var productInfo = await page.evaluate(async () => {
         let title = document.querySelector('#productTitle') !== null ? document.querySelector('#productTitle').innerText : 'NULL'
+        console.log('title')
         let price = document.querySelector('#priceblock_saleprice') !== null ? document.querySelector('#priceblock_saleprice').innerText : document.querySelector('#priceblock_ourprice') !== null ? document.querySelector('#priceblock_ourprice').innerText : 'NULL';
         let images = document.querySelector('.a-dynamic-image') !== null ? document.querySelector('.a-dynamic-image').src : `NULL`
         let stars = document.querySelector('.a-icon-alt') !== null ? document.querySelector('.a-icon-alt').innerText: `NULL`
@@ -152,9 +165,9 @@ const scrape = async (data) => {
         let description = document.querySelector('#productDescription')
         let altImgs = document.querySelectorAll('#altImages > ul .item')
         let hasAPlusContent = document.querySelector('#aplus_feature_div') ? "yes" : "NULL"
-        let ratingCount = document.querySelector('#acrCustomerReviewText').innerText
+        let ratingCount = document.querySelector('#acrCustomerReviewText') ? document.querySelector('#acrCustomerReviewText').innerText : "NULL"
         
-        reviewsLink = document.querySelector('#cr-pagination-footer-0 > a') !== null ? document.querySelector('#cr-pagination-footer-0 > a').getAttribute('href') : document.querySelector('#reviews-medley-footer > div > a').getAttribute('href')
+        reviewsLink = document.querySelector('#cr-pagination-footer-0 > a') !== null ? document.querySelector('#cr-pagination-footer-0 > a').getAttribute('href') : document.querySelector('#reviews-medley-footer > div > a') !==null ? document.querySelector('#reviews-medley-footer > div > a').getAttribute('href') : null;
 
         let features = document.body.querySelectorAll('#feature-bullets ul li .a-list-item');
         let formattedFeatures = [];
@@ -239,25 +252,27 @@ const scrape = async (data) => {
         };
         return product;
       });
-      productInfo.origAsin = formattedUrlsArr[i].split("/dp/")[1]
+      // productInfo.origAsin = formattedUrlsArr[i].split("/dp/")[1]
 
-      console.log(`https://www.amazon.com${productInfo.reviewCount}`)
-      await page.goto(`https://www.amazon.com${productInfo.reviewCount}`);
-      await page.waitForSelector('body');
+      // console.log(`https://www.amazon.com${productInfo.reviewCount}`)
+      if(productInfo.reviewCount){
+        await page.goto(`https://www.amazon.com${productInfo.reviewCount}`);
+        await page.waitForSelector('body');
+  
+        productInfo.reviewCount = await page.evaluate(async () => {
+          let result = await document.querySelector('#filter-info-section div span').innerText
+          result = result.split(' | ')[1].split(' ')[0]
+          return result
+        })
+      }
 
-      productInfo.reviewCount = await page.evaluate(async () => {
-        let result = await document.querySelector('#filter-info-section div span').innerText
-        result = result.split(' | ')[1].split(' ')[0]
-        return result
-      })
-
-      console.log("prioductINFFOOO", productInfo)
-      scrapedData.push(productInfo);
+      // console.log("prioductINFFOOO", productInfo)
+      await scrapedData.push(productInfo);
       // productInfo.relatedProducts.forEach(product =>{
       //   scrapedData.push(product)
       // })
     }
-    console.log("SCRAPE", scrapedData)
+    // console.log("SCRAPE", scrapedData)
     // page.close();
     await browser.close();
   }).catch(function(error) {
@@ -365,10 +380,10 @@ const sendMail = async(inputData, origData, batchName) => {
   const msg = {
     to: origData.sendZipEmail,
     from: 'admin@sgy.co',
-    subject: `${origData.batchName} --- Here is your powerpoint presentation!`,
+    subject: `${origData.batchName} --- Tributary Supply Scraper`,
     html: `
       <h1>${origData.batchName}</h1>
-      <h3>The PPTX file is attached!</h3>
+      <h3>3 files attached: ppt, csv & issues csv</h3>
       <p> ${origData.message} </p>
       <h4>ASID/URL List:</h4>
       <p> ${origData.batchUrls} </p>

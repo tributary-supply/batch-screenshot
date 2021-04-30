@@ -8,6 +8,7 @@ const fs = require("fs");
 
 
 const asins = require('./asinList').asins
+// const asins = require('./asinList').asins2
 const csv = require('./csv');
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
