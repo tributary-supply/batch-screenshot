@@ -1,4 +1,5 @@
 require('dotenv').config();
+require('newrelic');
 var PORT = process.env.PORT || 3000;
 var express = require('express');
 const MongoClient = require('mongodb').MongoClient;
@@ -21,7 +22,8 @@ var rimraf = require("rimraf");
 const ssUtils = require('./ss-utils/utils')
 const csv = require('./csv');
 // const { count } = require('console');
-const pingUrl = require('./cronJob')
+
+// const pingUrl = require('./cronJob')  //uncomment to run cron
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 var client = new browshot(`${process.env.BROWSHOT_API_KEY}`);
