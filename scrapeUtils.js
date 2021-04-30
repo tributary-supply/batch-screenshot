@@ -4,8 +4,6 @@ const csv = require('./csv');
 
 const scrape = async (data) => {
   const formattedUrlsArr = await formatData(data)
-  // console.log(formattedUrlsArr)
-  // const formattedUrlsArr = ['https://www.amazon.com/dp/B07ZX6P2PT']
 
   //this arr is for data objs from all urls
   let scrapedData = []
@@ -44,7 +42,7 @@ const scrape = async (data) => {
         let hasAPlusContent = document.querySelector('#aplus_feature_div') ? "yes" : "NULL"
         let ratingCount = document.querySelector('#acrCustomerReviewText').innerText
         
-        reviewsLink = document.querySelector('#cr-pagination-footer-0 > a') !== null ? document.querySelector('#cr-pagination-footer-0 > a').getAttribute('href') : document.querySelector('#reviews-medley-footer > div > a').getAttribute('href')
+        reviewsLink = document.querySelector('#cr-pagination-footer-0 > a') !== null ? document.querySelector('#cr-pagination-footer-0 > a').getAttribute('href') : document.querySelector('#reviews-medley-footer > div > a') !==null ? document.querySelector('#reviews-medley-footer > div > a').getAttribute('href') : null;
 
         let features = document.body.querySelectorAll('#feature-bullets ul li .a-list-item');
         let formattedFeatures = [];
@@ -128,14 +126,16 @@ const scrape = async (data) => {
       });
       // productInfo.origAsin = formattedUrlsArr[i].split("/dp/")[1]
 
-      await page.goto(`https://www.amazon.com${productInfo.reviewCount}`);
-      await page.waitForSelector('body');
-
-      productInfo.reviewCount = await page.evaluate(async () => {
-        let result = await document.querySelector('#filter-info-section div span').innerText
-        result = result.split(' | ')[1].split(' ')[0]
-        return result
-      })
+      if(productInfo.reviewCount){
+        await page.goto(`https://www.amazon.com${productInfo.reviewCount}`);
+        await page.waitForSelector('body');
+  
+        productInfo.reviewCount = await page.evaluate(async () => {
+          let result = await document.querySelector('#filter-info-section div span').innerText
+          result = result.split(' | ')[1].split(' ')[0]
+          return result
+        })
+      }
 
       await scrapedData.push(productInfo);
       // productInfo.relatedProducts.forEach(product =>{
