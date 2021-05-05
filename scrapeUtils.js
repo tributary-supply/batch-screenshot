@@ -15,15 +15,28 @@ const scrape = async (data) => {
 
     for (i = 0; i < formattedUrlsArr.length; i++) {
       console.log(`working on ${i+1} of ${formattedUrlsArr.length} ... `,formattedUrlsArr[i])
-      await page.goto(formattedUrlsArr[i], {waitUntil: 'load',
-      // Remove the timeout
-      timeout: 0});
+      await page.goto(formattedUrlsArr[i], {
+        waitUntil: 'load',
+        timeout: 0 // Remove the timeout
+      });
       await page.waitForSelector('body');
 
       // let aisnOrig = formattedUrlsArr[i]
       let reviewsLink;
 
       var productInfo = await page.evaluate(async () => {
+        
+        let errorText;
+        if(document.querySelector('#g > div > a > img')){
+          errorText = document.querySelector('#g > div > a > img').alt
+
+        } else {
+          errorText = null
+        }
+
+        if(!errorText){
+
+        }
         let title = document.querySelector('#productTitle') !== null ? document.querySelector('#productTitle').innerText : 'NULL'
         let price = document.querySelector('#priceblock_saleprice') !== null ? document.querySelector('#priceblock_saleprice').innerText : document.querySelector('#priceblock_ourprice') !== null ? document.querySelector('#priceblock_ourprice').innerText : 'NULL';
         let images = document.querySelector('.a-dynamic-image') !== null ? document.querySelector('.a-dynamic-image').src : `NULL`
@@ -85,46 +98,52 @@ const scrape = async (data) => {
         //   }
         // })
 
-        var product = { 
-          "asin": asin,
-          "price": price,
-          "buyBox": buyBox,
-          "shipsFrom": shipsFrom,
-          "availability": availability,
-          "category": category,
-          "title": title,
-          "altImages": altImgs.length,
-          "images": images,
-          "aPlusContent": hasAPlusContent,
-          "descriptionLength": description.length,
-          "bulletCount": features.length - 1,
-          "features": formattedFeatures,
-          "ratingCount": ratingCount,
-          "reviewCount": reviewsLink,
-          "stars": stars,
-          "style": style,
-          "byLine": byLine,
+        var product;
+        if(errorText){
+          product = {'asin': errorText}
+        } else {
+          product = { 
+            "asin": asin,
+            "price": price,
+            "buyBox": buyBox,
+            "shipsFrom": shipsFrom,
+            "availability": availability,
+            "category": category,
+            "title": title,
+            "altImages": altImgs.length,
+            "images": images,
+            "aPlusContent": hasAPlusContent,
+            "descriptionLength": description.length,
+            "bulletCount": features.length - 1,
+            "features": formattedFeatures,
+            "ratingCount": ratingCount,
+            "reviewCount": reviewsLink,
+            "stars": stars,
+            "style": style,
+            "byLine": byLine,
+  
+            // "relatedProducts": related,
+  
+            // "relAsin" : related.length > 0 ? related[0].relAsin : 'none',
+            // "relPrice" : related.length > 0 ? related[0].relPrice : 'none',
+            // "relDescription" : related.length > 0 ? related[0].relDescription : 'none',
+  
+            // "relAsin2" : related.length > 1 ? related[1].relAsin2 : 'none',
+            // "relPrice2" : related.length > 1 ? related[1].relPrice2 : 'none',
+            // "relDescription2" : related.length > 1 ? related[1].relDescription2 : 'none',
+  
+            // "rel asin" : related[0].relAsin ? related[0].relAsin : 'none',
+            // "rel price": related[0].relPrice,
+            // "rel description": related[0].relDescription,
+            // "rel asin 2" : related[1].relAsin2,
+            // "rel price 2": related[1].relPrice2,
+            // "rel description 2": related[1].relDescription2
+          };
 
-          // "relatedProducts": related,
-
-          // "relAsin" : related.length > 0 ? related[0].relAsin : 'none',
-          // "relPrice" : related.length > 0 ? related[0].relPrice : 'none',
-          // "relDescription" : related.length > 0 ? related[0].relDescription : 'none',
-
-          // "relAsin2" : related.length > 1 ? related[1].relAsin2 : 'none',
-          // "relPrice2" : related.length > 1 ? related[1].relPrice2 : 'none',
-          // "relDescription2" : related.length > 1 ? related[1].relDescription2 : 'none',
-
-          // "rel asin" : related[0].relAsin ? related[0].relAsin : 'none',
-          // "rel price": related[0].relPrice,
-          // "rel description": related[0].relDescription,
-          // "rel asin 2" : related[1].relAsin2,
-          // "rel price 2": related[1].relPrice2,
-          // "rel description 2": related[1].relDescription2
-        };
+        }
         return product;
       });
-      // productInfo.origAsin = formattedUrlsArr[i].split("/dp/")[1]
+      productInfo.origAsin = formattedUrlsArr[i].split("/dp/")[1]
 
       if(productInfo.reviewCount){
         await page.goto(`https://www.amazon.com${productInfo.reviewCount}`);
@@ -147,20 +166,6 @@ const scrape = async (data) => {
   }).catch(function(error) {
     console.error(error);
   });
-  
-  //testing
-  // let batchName = "batch"
-  // scrapedData.splice(0,0,{  //this adds a header row
-  //   "title": '',
-  //   "asid": '',
-  //   "price": '',
-  //   "rel asin" : '',
-  //   "rel price": '',
-  //   "rel description": '',
-  //   "rel asin 2" : '',
-  //   "rel price 2": '',
-  //   "rel description 2": ''
-  // })
 
   let batchName = data.batchName ? data.batchName : "batch"
   const issueProducts = await findIssues(scrapedData)
