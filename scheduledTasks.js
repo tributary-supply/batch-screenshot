@@ -57,7 +57,7 @@ async function upsertMany(dataArr, collection){
           images: dataArr[i].images,
           aPlusContent: dataArr[i].hasAPlusContent,
           // descriptionLength: dataArr[i].description.length,
-          bulletCount: dataArr[i].features.length - 1 || 'none',
+          bulletCount: dataArr[i].features ? dataArr[i].features.length - 1 : 'none',
           features: dataArr[i].formattedFeatures,
           ratingCount: dataArr[i].ratingCount,
           reviewCount: dataArr[i].reviewsLink,
