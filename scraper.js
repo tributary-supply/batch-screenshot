@@ -155,8 +155,8 @@ const scrape = async (data) => {
 
         } else {
           errorText = null
+
           title = document.querySelector('#productTitle') !== null ? document.querySelector('#productTitle').innerText : 'NULL'
-          console.log('title')
           price = document.querySelector('#priceblock_saleprice') !== null ? document.querySelector('#priceblock_saleprice').innerText : document.querySelector('#priceblock_ourprice') !== null ? document.querySelector('#priceblock_ourprice').innerText : 'NULL';
           images = document.querySelector('.a-dynamic-image') !== null ? document.querySelector('.a-dynamic-image').src : `NULL`
           stars = document.querySelector('.a-icon-alt') !== null ? document.querySelector('.a-icon-alt').innerText: `NULL`
@@ -176,11 +176,13 @@ const scrape = async (data) => {
           
           reviewsLink = document.querySelector('#cr-pagination-footer-0 > a') !== null ? document.querySelector('#cr-pagination-footer-0 > a').getAttribute('href') : document.querySelector('#reviews-medley-footer > div > a') !==null ? document.querySelector('#reviews-medley-footer > div > a').getAttribute('href') : null;
   
-          features = document.body.querySelectorAll('#feature-bullets ul li .a-list-item');
+          features = document.body.querySelectorAll('#feature-bullets ul li .a-list-item') || null;
           formattedFeatures = [];
-          features.forEach((feature) => {
-              formattedFeatures.push(feature.innerText);
-          });
+          if(features!== null){
+            features.forEach((feature) => {
+                formattedFeatures.push(feature.innerText);
+            });
+          }
         }
 
 
@@ -223,7 +225,7 @@ const scrape = async (data) => {
 
         var product;
         if(errorText){
-          product = {'asin': errorText}
+          product = {'asin': errorText, 'error': true}
         } else {
           var product = { 
             "asin": asin,

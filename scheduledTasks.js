@@ -5,8 +5,8 @@ const scrapeUtils = require('./scrapeUtils')
 const MongoClient = require('mongodb').MongoClient;
 const sgMail = require('@sendgrid/mail');
 const fs = require("fs");
-// const asins = require('./asinList').asins
-const asins = require('./asinList').asins2
+const asins = require('./asinList').asins
+// const asins = require('./asinList').asins2
 const csv = require('./csv');
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
@@ -28,6 +28,7 @@ MongoClient.connect(url)
 async function updateDB(productsCollection, cronCollection){
   console.log('running cron...')
   let scrapedData = await scrapeUtils.scrape(asins)
+  console.log('SCRAPED',scrapedData)
   await upsertMany(scrapedData, productsCollection)
 
   await cronCollection.insertOne({"Date": todaysDate})
@@ -39,36 +40,48 @@ async function upsertMany(dataArr, collection){
   try {
     for(i=0;i<dataArr.length;i++){
       const issueDayCount = await getIssueDayCount(dataArr[i], collection)
-      console.log('issueeeeee', issueDayCount)
-      const query = { asin:  dataArr[i].asin}
+      // console.log('issueeeeee', issueDayCount)
+      const query = { origAsin:  dataArr[i].origAsin}
       const options = { upsert: true };
-      const update = {
-        $set: {
-          asin: dataArr[i].asin,
-          title: dataArr[i].title,
-          price: dataArr[i].price,
-          buyBox: dataArr[i].buyBox,
-          shipsFrom: dataArr[i].shipsFrom,
-          availability: dataArr[i].availability,
-
-          category: dataArr[i].category,
-          title: dataArr[i].title,
-          // altImages: dataArr[i].altImgs.length,
-          images: dataArr[i].images,
-          aPlusContent: dataArr[i].hasAPlusContent,
-          // descriptionLength: dataArr[i].description.length,
-          bulletCount: dataArr[i].features.length - 1,
-          features: dataArr[i].formattedFeatures,
-          ratingCount: dataArr[i].ratingCount,
-          reviewCount: dataArr[i].reviewsLink,
-          stars: dataArr[i].stars,
-          style: dataArr[i].style,
-          byLine: dataArr[i].byLine,
-
-          issueDayCount: issueDayCount,
-          // issueFirstFoundDate: new Date()
+      let update
+      // if(dataArr[i].error == true){
+      //   update = {
+      //     $set: {
+      //       asin: dataArr[i].asin,
+      //       error: dataArr[i].error,
+      //       origAsin: dataArr[i].origAsin
+      //     }
+      //   }
+      // } else{
+        update = {
+          $set: {
+            asin: dataArr[i].asin,
+            title: dataArr[i].title,
+            price: dataArr[i].price,
+            buyBox: dataArr[i].buyBox,
+            shipsFrom: dataArr[i].shipsFrom,
+            availability: dataArr[i].availability,
+  
+            category: dataArr[i].category,
+            title: dataArr[i].title,
+            altImages: dataArr[i].altImgs ? dataArr[i].altImgs.length : 'null',
+            images: dataArr[i].images,
+            aPlusContent: dataArr[i].hasAPlusContent,
+            descriptionLength: dataArr[i].description ? dataArr[i].description.length : 'null',
+            bulletCount: dataArr[i].features ? dataArr[i].features.length - 1 : 'null',
+            features: dataArr[i].formattedFeatures,
+            ratingCount: dataArr[i].ratingCount,
+            reviewCount: dataArr[i].reviewsLink,
+            stars: dataArr[i].stars,
+            style: dataArr[i].style,
+            byLine: dataArr[i].byLine,
+  
+            // issueDayCount: issueDayCount,
+            // issueFirstFoundDate: new Date()
+            origAsin: dataArr[i].origAsin
+          }
         }
-      }
+      // }
       const result = await collection.updateOne(query, update, options)
       // console.log(`${result} documents were inserted`);
       console.log('object inserted')
@@ -77,6 +90,8 @@ async function upsertMany(dataArr, collection){
   } catch(err){
     console.log(err)
   } finally {
+    console.log('done adding data to mongoDB')
+
     // await client.close();
   }
 }
