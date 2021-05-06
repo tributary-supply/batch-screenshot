@@ -430,3 +430,77 @@
 {"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":26698,"time":"2021-04-30T19:31:45.906Z","msg":"Valid event_harvest_config received. Updating harvest cycles. {\"report_period_ms\":5000,\"harvest_limits\":{\"error_event_data\":8,\"analytic_event_data\":833,\"custom_event_data\":83}}"}
 {"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":26698,"time":"2021-04-30T19:31:45.909Z","msg":"Agent state changed from connected to started."}
 {"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":26698,"time":"2021-04-30T19:31:46.913Z","msg":"Starting initial 1000ms harvest."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44027,"time":"2021-05-05T14:20:21.445Z","msg":"Using New Relic for Node.js. Agent version: 7.3.1; Node version: v12.18.3."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44027,"time":"2021-05-05T14:20:21.639Z","msg":"Agent state changed from stopped to starting."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44027,"time":"2021-05-05T14:20:21.804Z","msg":"Starting New Relic for Node.js connection process."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44027,"time":"2021-05-05T14:20:21.804Z","msg":"Agent state changed from starting to connecting."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44027,"time":"2021-05-05T14:20:30.185Z","msg":"Agent state changed from connecting to connected."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44027,"time":"2021-05-05T14:20:30.185Z","msg":"Connected to collector-007.newrelic.com:443 with agent run ID BZg80Vufi6G5ADA2Yl9rcoFgkqoIAAgBAAAnIQEAAKv7AgRfa3J_AwAFNy4zLjEADExpZmUtMi5sb2NhbAAadHJpYjBzdXBwbHktYW1hem9uLXNjcmFwZXI.","component":"collector_api"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44027,"time":"2021-05-05T14:20:30.185Z","msg":"Reporting to: https://rpm.newrelic.com/accounts/3159650/applications/1600877183","component":"collector_api"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44027,"time":"2021-05-05T14:20:30.186Z","msg":"Valid event_harvest_config received. Updating harvest cycles. {\"report_period_ms\":5000,\"harvest_limits\":{\"error_event_data\":8,\"analytic_event_data\":833,\"custom_event_data\":83}}"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44027,"time":"2021-05-05T14:20:30.189Z","msg":"Agent state changed from connected to started."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44027,"time":"2021-05-05T14:20:31.194Z","msg":"Starting initial 1000ms harvest."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44057,"time":"2021-05-05T14:21:36.537Z","msg":"Using New Relic for Node.js. Agent version: 7.3.1; Node version: v12.18.3."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44057,"time":"2021-05-05T14:21:36.770Z","msg":"Agent state changed from stopped to starting."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44057,"time":"2021-05-05T14:21:36.962Z","msg":"Starting New Relic for Node.js connection process."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44057,"time":"2021-05-05T14:21:36.962Z","msg":"Agent state changed from starting to connecting."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44057,"time":"2021-05-05T14:21:42.639Z","msg":"Agent state changed from connecting to connected."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44057,"time":"2021-05-05T14:21:42.640Z","msg":"Connected to collector-007.newrelic.com:443 with agent run ID BfUeaNm-ZOqdADA2Yl9rcoFgkqpEAAgBAAAnIQEAAKwZAgRfa3J_AwAFNy4zLjEADExpZmUtMi5sb2NhbAAadHJpYjBzdXBwbHktYW1hem9uLXNjcmFwZXI.","component":"collector_api"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44057,"time":"2021-05-05T14:21:42.640Z","msg":"Reporting to: https://rpm.newrelic.com/accounts/3159650/applications/1600877183","component":"collector_api"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44057,"time":"2021-05-05T14:21:42.641Z","msg":"Valid event_harvest_config received. Updating harvest cycles. {\"report_period_ms\":5000,\"harvest_limits\":{\"error_event_data\":8,\"analytic_event_data\":833,\"custom_event_data\":83}}"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44057,"time":"2021-05-05T14:21:42.644Z","msg":"Agent state changed from connected to started."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44057,"time":"2021-05-05T14:21:43.647Z","msg":"Starting initial 1000ms harvest."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44108,"time":"2021-05-05T14:26:28.752Z","msg":"Using New Relic for Node.js. Agent version: 7.3.1; Node version: v12.18.3."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44108,"time":"2021-05-05T14:26:29.036Z","msg":"Agent state changed from stopped to starting."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44108,"time":"2021-05-05T14:26:29.182Z","msg":"Starting New Relic for Node.js connection process."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44108,"time":"2021-05-05T14:26:29.182Z","msg":"Agent state changed from starting to connecting."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44108,"time":"2021-05-05T14:26:35.168Z","msg":"Agent state changed from connecting to connected."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44108,"time":"2021-05-05T14:26:35.168Z","msg":"Connected to collector-007.newrelic.com:443 with agent run ID BeZWdLnUsLj1ADA2Yl9rcoFgkqtwAAgBAAAnIQEAAKxMAgRfa3J_AwAFNy4zLjEADExpZmUtMi5sb2NhbAAadHJpYjBzdXBwbHktYW1hem9uLXNjcmFwZXI.","component":"collector_api"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44108,"time":"2021-05-05T14:26:35.169Z","msg":"Reporting to: https://rpm.newrelic.com/accounts/3159650/applications/1600877183","component":"collector_api"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44108,"time":"2021-05-05T14:26:35.170Z","msg":"Valid event_harvest_config received. Updating harvest cycles. {\"report_period_ms\":5000,\"harvest_limits\":{\"error_event_data\":8,\"analytic_event_data\":833,\"custom_event_data\":83}}"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44108,"time":"2021-05-05T14:26:35.174Z","msg":"Agent state changed from connected to started."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44108,"time":"2021-05-05T14:26:36.178Z","msg":"Starting initial 1000ms harvest."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44181,"time":"2021-05-05T14:32:55.295Z","msg":"Using New Relic for Node.js. Agent version: 7.3.1; Node version: v12.18.3."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44181,"time":"2021-05-05T14:32:55.541Z","msg":"Agent state changed from stopped to starting."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44181,"time":"2021-05-05T14:32:55.951Z","msg":"Starting New Relic for Node.js connection process."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44181,"time":"2021-05-05T14:32:55.951Z","msg":"Agent state changed from starting to connecting."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44181,"time":"2021-05-05T14:33:01.617Z","msg":"Agent state changed from connecting to connected."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44181,"time":"2021-05-05T14:33:01.617Z","msg":"Connected to collector-007.newrelic.com:443 with agent run ID BeBxO7KH7VQsADA2Yl9rcoFgkq0UAAgBAAAnIQEAAKyVAgRfa3J_AwAFNy4zLjEADExpZmUtMi5sb2NhbAAadHJpYjBzdXBwbHktYW1hem9uLXNjcmFwZXI.","component":"collector_api"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44181,"time":"2021-05-05T14:33:01.617Z","msg":"Reporting to: https://rpm.newrelic.com/accounts/3159650/applications/1600877183","component":"collector_api"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44181,"time":"2021-05-05T14:33:01.618Z","msg":"Valid event_harvest_config received. Updating harvest cycles. {\"report_period_ms\":5000,\"harvest_limits\":{\"error_event_data\":8,\"analytic_event_data\":833,\"custom_event_data\":83}}"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44181,"time":"2021-05-05T14:33:01.621Z","msg":"Agent state changed from connected to started."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44181,"time":"2021-05-05T14:33:02.625Z","msg":"Starting initial 1000ms harvest."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44356,"time":"2021-05-05T14:56:57.062Z","msg":"Using New Relic for Node.js. Agent version: 7.3.1; Node version: v12.18.3."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44356,"time":"2021-05-05T14:56:57.397Z","msg":"Agent state changed from stopped to starting."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44356,"time":"2021-05-05T14:56:57.568Z","msg":"Starting New Relic for Node.js connection process."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44356,"time":"2021-05-05T14:56:57.568Z","msg":"Agent state changed from starting to connecting."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44356,"time":"2021-05-05T14:57:02.976Z","msg":"Agent state changed from connecting to connected."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44356,"time":"2021-05-05T14:57:02.977Z","msg":"Connected to collector-007.newrelic.com:443 with agent run ID BTGxqcSgUAX7ADA2Yl9rcoFgkrK0AAgBAAAnIQEAAK1EAgRfa3J_AwAFNy4zLjEADExpZmUtMi5sb2NhbAAadHJpYjBzdXBwbHktYW1hem9uLXNjcmFwZXI.","component":"collector_api"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44356,"time":"2021-05-05T14:57:02.977Z","msg":"Reporting to: https://rpm.newrelic.com/accounts/3159650/applications/1600877183","component":"collector_api"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44356,"time":"2021-05-05T14:57:02.978Z","msg":"Valid event_harvest_config received. Updating harvest cycles. {\"report_period_ms\":5000,\"harvest_limits\":{\"error_event_data\":8,\"analytic_event_data\":833,\"custom_event_data\":83}}"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44356,"time":"2021-05-05T14:57:02.981Z","msg":"Agent state changed from connected to started."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44356,"time":"2021-05-05T14:57:03.985Z","msg":"Starting initial 1000ms harvest."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44474,"time":"2021-05-05T15:07:34.687Z","msg":"Using New Relic for Node.js. Agent version: 7.3.1; Node version: v12.18.3."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44474,"time":"2021-05-05T15:07:35.940Z","msg":"Agent state changed from stopped to starting."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44474,"time":"2021-05-05T15:07:36.635Z","msg":"Starting New Relic for Node.js connection process."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44474,"time":"2021-05-05T15:07:36.635Z","msg":"Agent state changed from starting to connecting."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44474,"time":"2021-05-05T15:07:47.245Z","msg":"Agent state changed from connecting to connected."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44474,"time":"2021-05-05T15:07:47.246Z","msg":"Connected to collector-007.newrelic.com:443 with agent run ID BYYKsN3j3Yr7ADA2Yl9rcoFgkrUMAAgBAAAnIQEAAK26AgRfa3J_AwAFNy4zLjEADExpZmUtMi5sb2NhbAAadHJpYjBzdXBwbHktYW1hem9uLXNjcmFwZXI.","component":"collector_api"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44474,"time":"2021-05-05T15:07:47.246Z","msg":"Reporting to: https://rpm.newrelic.com/accounts/3159650/applications/1600877183","component":"collector_api"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44474,"time":"2021-05-05T15:07:47.250Z","msg":"Valid event_harvest_config received. Updating harvest cycles. {\"report_period_ms\":5000,\"harvest_limits\":{\"error_event_data\":8,\"analytic_event_data\":833,\"custom_event_data\":83}}"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44474,"time":"2021-05-05T15:07:47.256Z","msg":"Agent state changed from connected to started."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44474,"time":"2021-05-05T15:07:48.260Z","msg":"Starting initial 1000ms harvest."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44499,"time":"2021-05-05T15:07:49.903Z","msg":"Using New Relic for Node.js. Agent version: 7.3.1; Node version: v12.18.3."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44499,"time":"2021-05-05T15:07:50.635Z","msg":"Agent state changed from stopped to starting."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44499,"time":"2021-05-05T15:07:50.911Z","msg":"Starting New Relic for Node.js connection process."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44499,"time":"2021-05-05T15:07:50.911Z","msg":"Agent state changed from starting to connecting."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44617,"time":"2021-05-05T15:10:50.220Z","msg":"Using New Relic for Node.js. Agent version: 7.3.1; Node version: v12.18.3."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44617,"time":"2021-05-05T15:10:50.400Z","msg":"Agent state changed from stopped to starting."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44617,"time":"2021-05-05T15:10:50.535Z","msg":"Starting New Relic for Node.js connection process."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44617,"time":"2021-05-05T15:10:50.535Z","msg":"Agent state changed from starting to connecting."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44617,"time":"2021-05-05T15:10:55.903Z","msg":"Agent state changed from connecting to connected."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44617,"time":"2021-05-05T15:10:55.904Z","msg":"Connected to collector-007.newrelic.com:443 with agent run ID BdWKpzmlMwbkADA2Yl9rcoFgkrXAAAgBAAAnIQEAAK5JAgRfa3J_AwAFNy4zLjEADExpZmUtMi5sb2NhbAAadHJpYjBzdXBwbHktYW1hem9uLXNjcmFwZXI.","component":"collector_api"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44617,"time":"2021-05-05T15:10:55.904Z","msg":"Reporting to: https://rpm.newrelic.com/accounts/3159650/applications/1600877183","component":"collector_api"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44617,"time":"2021-05-05T15:10:55.905Z","msg":"Valid event_harvest_config received. Updating harvest cycles. {\"report_period_ms\":5000,\"harvest_limits\":{\"error_event_data\":8,\"analytic_event_data\":833,\"custom_event_data\":83}}"}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44617,"time":"2021-05-05T15:10:55.908Z","msg":"Agent state changed from connected to started."}
+{"v":0,"level":30,"name":"newrelic","hostname":"Life-2.local","pid":44617,"time":"2021-05-05T15:10:56.910Z","msg":"Starting initial 1000ms harvest."}

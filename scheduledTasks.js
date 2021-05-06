@@ -5,10 +5,8 @@ const scrapeUtils = require('./scrapeUtils')
 const MongoClient = require('mongodb').MongoClient;
 const sgMail = require('@sendgrid/mail');
 const fs = require("fs");
-
-
-const asins = require('./asinList').asins
-// const asins = require('./asinList').asins2
+// const asins = require('./asinList').asins
+const asins = require('./asinList').asins2
 const csv = require('./csv');
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
@@ -40,6 +38,8 @@ async function updateDB(productsCollection, cronCollection){
 async function upsertMany(dataArr, collection){
   try {
     for(i=0;i<dataArr.length;i++){
+      const issueDayCount = await getIssueDayCount(dataArr[i], collection)
+      console.log('issueeeeee', issueDayCount)
       const query = { asin:  dataArr[i].asin}
       const options = { upsert: true };
       const update = {
@@ -64,6 +64,8 @@ async function upsertMany(dataArr, collection){
           stars: dataArr[i].stars,
           style: dataArr[i].style,
           byLine: dataArr[i].byLine,
+
+          issueDayCount: issueDayCount,
           // issueFirstFoundDate: new Date()
         }
       }
@@ -111,13 +113,39 @@ async function getAllFromDB(collection){
 // }
 
 
+async function getIssueDayCount(scrapedData, collection){
+  let prod = await collection.findOne({ asin: scrapedData.asin})
+  
+  if(scrapedData.price == 'NULL' || scrapedData.buyBox == 'NULL' || scrapedData.shipsFrom == 'NULL' || scrapedData.availability !== 'In Stock.'){ //if the newly scraped data has issues, see if it had issues before. if it has, add 1, if it hasn't set to 1
+    console.log("ISSSUEEEEE")
+    if(prod){  //make sure the product exists in the db
+      if(prod.price == 'NULL' || prod.buyBox == 'NULL' || prod.shipsFrom == 'NULL' || prod.availability !== 'In Stock.'){ //check that the same item in db also has issues
+        if(prod.issueDayCount >= 1){  //if it has issues and this IS NOT the first time
+          return prod.issueDayCount + 1  //add 1 to issue field
+        } else { //if it's the first time having an issue
+          return 1
+        }
+  
+      } else { //if the db item doesn't have issues, then this is the first, set to 1
+        return 1
+      }
+  
+    } else { //the product didn't exist in the db and the newlty scraped data has issues
+      return 1
+    }
 
+  } else { //the newly scrpaed data didn't have any issues, set to null
+    return null
+  }
+
+}
 
 
 
 //SENDGRID MAIL
 const sendMail = async() => {
-  let sendTo = 'dan@sgyida.com'
+  let sendTo = ['dan@sgyida.com']
+  // let sendTo = ['dan@sgyida.com', 'anit@sgyida.com', 'jake@sgyida.com', 'keith@sgyida.com']
   // pathToAttachment = `${__dirname}/${batchName}.pptx`;
   // attachment = await fs.readFileSync(pathToAttachment).toString("base64");
   

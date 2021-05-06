@@ -148,32 +148,42 @@ const scrape = async (data) => {
       let reviewsLink;
 
       var productInfo = await page.evaluate(async () => {
-        let title = document.querySelector('#productTitle') !== null ? document.querySelector('#productTitle').innerText : 'NULL'
-        console.log('title')
-        let price = document.querySelector('#priceblock_saleprice') !== null ? document.querySelector('#priceblock_saleprice').innerText : document.querySelector('#priceblock_ourprice') !== null ? document.querySelector('#priceblock_ourprice').innerText : 'NULL';
-        let images = document.querySelector('.a-dynamic-image') !== null ? document.querySelector('.a-dynamic-image').src : `NULL`
-        let stars = document.querySelector('.a-icon-alt') !== null ? document.querySelector('.a-icon-alt').innerText: `NULL`
-        let style = document.querySelector('.selection') !== null ? document.querySelector('.selection').innerText : 'NULL';
-        let byLine = document.querySelector('#bylineInfo') !== null ? document.querySelector('#bylineInfo').innerText : 'NULL'
-        let category = document.querySelector('#wayfinding-breadcrumbs_feature_div ul li:last-child span a') !== null ? document.querySelector('#wayfinding-breadcrumbs_feature_div ul li:last-child span a').innerText : 'NULL'
-        let asin = document.querySelector('#productDetails_detailBullets_sections1 tbody tr:first-child td') !== null ? document.querySelector('#productDetails_detailBullets_sections1 tbody tr:first-child td').innerText : "NULL"
 
-        let buyBox = document.querySelector('#buy-now-button') !== null ? 'yes': 'NULL'
-        let shipsFrom = document.querySelector('#tabular-buybox-container') !== null ? document.querySelector('#tabular-buybox-container').innerHTML.includes('Amazon.com') ? 'yes': 'NULL' : 'NULL';
-        let availability = document.querySelector('#availability span') !== null ? document.querySelector('#availability span').innerText : 'NULL'
-        
-        let description = document.querySelector('#productDescription')
-        let altImgs = document.querySelectorAll('#altImages > ul .item')
-        let hasAPlusContent = document.querySelector('#aplus_feature_div') ? "yes" : "NULL"
-        let ratingCount = document.querySelector('#acrCustomerReviewText') ? document.querySelector('#acrCustomerReviewText').innerText : "NULL"
-        
-        reviewsLink = document.querySelector('#cr-pagination-footer-0 > a') !== null ? document.querySelector('#cr-pagination-footer-0 > a').getAttribute('href') : document.querySelector('#reviews-medley-footer > div > a') !==null ? document.querySelector('#reviews-medley-footer > div > a').getAttribute('href') : null;
+        let errorText, title, price, images, stars, style, byLine, category, asin, buyBox, shipsFrom, availability, description, altImgs, hasAPlusContent, ratingCount, features, formattedFeatures;
+        if(document.querySelector('#g > div > a > img')){
+          errorText = document.querySelector('#g > div > a > img').alt
 
-        let features = document.body.querySelectorAll('#feature-bullets ul li .a-list-item');
-        let formattedFeatures = [];
-        features.forEach((feature) => {
-            formattedFeatures.push(feature.innerText);
-        });
+        } else {
+          errorText = null
+          title = document.querySelector('#productTitle') !== null ? document.querySelector('#productTitle').innerText : 'NULL'
+          console.log('title')
+          price = document.querySelector('#priceblock_saleprice') !== null ? document.querySelector('#priceblock_saleprice').innerText : document.querySelector('#priceblock_ourprice') !== null ? document.querySelector('#priceblock_ourprice').innerText : 'NULL';
+          images = document.querySelector('.a-dynamic-image') !== null ? document.querySelector('.a-dynamic-image').src : `NULL`
+          stars = document.querySelector('.a-icon-alt') !== null ? document.querySelector('.a-icon-alt').innerText: `NULL`
+          style = document.querySelector('.selection') !== null ? document.querySelector('.selection').innerText : 'NULL';
+          byLine = document.querySelector('#bylineInfo') !== null ? document.querySelector('#bylineInfo').innerText : 'NULL'
+          category = document.querySelector('#wayfinding-breadcrumbs_feature_div ul li:last-child span a') !== null ? document.querySelector('#wayfinding-breadcrumbs_feature_div ul li:last-child span a').innerText : 'NULL'
+          asin = document.querySelector('#productDetails_detailBullets_sections1 tbody tr:first-child td') !== null ? document.querySelector('#productDetails_detailBullets_sections1 tbody tr:first-child td').innerText : "NULL"
+  
+          buyBox = document.querySelector('#buy-now-button') !== null ? 'yes': 'NULL'
+          shipsFrom = document.querySelector('#tabular-buybox-container') !== null ? document.querySelector('#tabular-buybox-container').innerHTML.includes('Amazon.com') ? 'yes': 'NULL' : 'NULL';
+          availability = document.querySelector('#availability span') !== null ? document.querySelector('#availability span').innerText : 'NULL'
+          
+          description = document.querySelector('#productDescription')
+          altImgs = document.querySelectorAll('#altImages > ul .item')
+          hasAPlusContent = document.querySelector('#aplus_feature_div') ? "yes" : "NULL"
+          ratingCount = document.querySelector('#acrCustomerReviewText') ? document.querySelector('#acrCustomerReviewText').innerText : "NULL"
+          
+          reviewsLink = document.querySelector('#cr-pagination-footer-0 > a') !== null ? document.querySelector('#cr-pagination-footer-0 > a').getAttribute('href') : document.querySelector('#reviews-medley-footer > div > a') !==null ? document.querySelector('#reviews-medley-footer > div > a').getAttribute('href') : null;
+  
+          features = document.body.querySelectorAll('#feature-bullets ul li .a-list-item');
+          formattedFeatures = [];
+          features.forEach((feature) => {
+              formattedFeatures.push(feature.innerText);
+          });
+        }
+
+
 
         // let relatedDesc = document.querySelectorAll('#sims-consolidated-1_feature_div .sims-fbt-rows ul li a')  //contain the descriptions
         // let relatedLinks = document.querySelectorAll('#sims-consolidated-1_feature_div .sims-fbt-rows ul li a')  //contain the ASIDS
@@ -211,48 +221,54 @@ const scrape = async (data) => {
         // })
         // console.log("RELATED", related)
 
-        var product = { 
-          "asin": asin,
-          "price": price,
-          "buyBox": buyBox,
-          "shipsFrom": shipsFrom,
-          "availability": availability,
-          "category": category,
-          "title": title,
-          "altImages": altImgs.length,
-          "images": images,
-          "aPlusContent": hasAPlusContent,
-          "descriptionLength": description.length,
-          "bulletCount": features.length - 1,
-          "features": formattedFeatures,
-          "ratingCount": ratingCount,
-          "reviewCount": reviewsLink,
-          "stars": stars,
-          "style": style,
-          "byLine": byLine,
+        var product;
+        if(errorText){
+          product = {'asin': errorText}
+        } else {
+          var product = { 
+            "asin": asin,
+            "price": price,
+            "buyBox": buyBox,
+            "shipsFrom": shipsFrom,
+            "availability": availability,
+            "category": category,
+            "title": title,
+            "altImages": altImgs.length,
+            "images": images,
+            "aPlusContent": hasAPlusContent,
+            "descriptionLength": description.length,
+            "bulletCount": features.length - 1,
+            "features": formattedFeatures,
+            "ratingCount": ratingCount,
+            "reviewCount": reviewsLink,
+            "stars": stars,
+            "style": style,
+            "byLine": byLine,
 
 
-          // "relatedProducts": related,
+            // "relatedProducts": related,
 
-          // "relAsin" : related.length > 0 ? related[0].relAsin : 'none',
-          // "relPrice" : related.length > 0 ? related[0].relPrice : 'none',
-          // "relDescription" : related.length > 0 ? related[0].relDescription : 'none',
+            // "relAsin" : related.length > 0 ? related[0].relAsin : 'none',
+            // "relPrice" : related.length > 0 ? related[0].relPrice : 'none',
+            // "relDescription" : related.length > 0 ? related[0].relDescription : 'none',
 
-          // "relAsin2" : related.length > 1 ? related[1].relAsin2 : 'none',
-          // "relPrice2" : related.length > 1 ? related[1].relPrice2 : 'none',
-          // "relDescription2" : related.length > 1 ? related[1].relDescription2 : 'none',
+            // "relAsin2" : related.length > 1 ? related[1].relAsin2 : 'none',
+            // "relPrice2" : related.length > 1 ? related[1].relPrice2 : 'none',
+            // "relDescription2" : related.length > 1 ? related[1].relDescription2 : 'none',
 
 
-          // "rel asin" : related[0].relAsin ? related[0].relAsin : 'none',
-          // "rel price": related[0].relPrice,
-          // "rel description": related[0].relDescription,
-          // "rel asin 2" : related[1].relAsin2,
-          // "rel price 2": related[1].relPrice2,
-          // "rel description 2": related[1].relDescription2
-        };
+            // "rel asin" : related[0].relAsin ? related[0].relAsin : 'none',
+            // "rel price": related[0].relPrice,
+            // "rel description": related[0].relDescription,
+            // "rel asin 2" : related[1].relAsin2,
+            // "rel price 2": related[1].relPrice2,
+            // "rel description 2": related[1].relDescription2
+          };
+
+        }
         return product;
       });
-      // productInfo.origAsin = formattedUrlsArr[i].split("/dp/")[1]
+      productInfo.origAsin = formattedUrlsArr[i].split("/dp/")[1]
 
       // console.log(`https://www.amazon.com${productInfo.reviewCount}`)
       if(productInfo.reviewCount){
@@ -315,39 +331,44 @@ async function createPPT(data, origData){
   // 1. Create a new Presentation
   let pres = await new pptxgen();
   for (i=0;i<data.length;i++){
-    let slide = await pres.addSlide();
-    let rows = []
-    // rows.push(["First", "Second", "Third"]);
-    rows.push([{ text: `TITLE: ${data[i].title}`, options: { color: "2d2d2d", bold: true, fontSize: 12 } }]);
-    rows.push([{ text: `MADE BY: ${data[i].byLine}`, options: { color: "666666", fontSize: 8} }]);
-    rows.push([{ text: `${data[i].price}`, options: { color: "2d2d2d", fontSize: 10 } }]);
-    rows.push([{ text: `${data[i].stars}`, options: { color: "2d2d2d", fontSize: 10 } }]);
-    rows.push([{ text: `${data[i].style}`, options: { color: "2d2d2d", fontSize: 10 } }]);
-
-    for (j = 1; j < data[i].features.length; j++) {
-      rows.push([{ text: `${data[i].features[j]}`, options: { color: "2d2d2d", fontSize: 8 } }]);
-    };
-
-    if (data[i].images !== "no image") {
+    if (data[i].asin.includes('Sorry')){
+      continue
+    }else {
+      let slide = await pres.addSlide();
+      let rows = []
+      // rows.push(["First", "Second", "Third"]);
+      rows.push([{ text: `TITLE: ${data[i].title}`, options: { color: "2d2d2d", bold: true, fontSize: 12 } }]);
+      rows.push([{ text: `MADE BY: ${data[i].byLine}`, options: { color: "666666", fontSize: 8} }]);
+      rows.push([{ text: `${data[i].price}`, options: { color: "2d2d2d", fontSize: 10 } }]);
+      rows.push([{ text: `${data[i].stars}`, options: { color: "2d2d2d", fontSize: 10 } }]);
+      rows.push([{ text: `${data[i].style}`, options: { color: "2d2d2d", fontSize: 10 } }]);
+  
+      for (j = 1; j < data[i].features.length; j++) {
+        rows.push([{ text: `${data[i].features[j]}`, options: { color: "2d2d2d", fontSize: 8 } }]);
+      };
+  
+      if (data[i].images !== "no image") {
+        await slide
+        .addImage({
+          path: data[i].images,
+          x: 0.2,
+          y: 1,
+          w: 3.8,
+          h: 3.8,
+          // sizing: { 
+          //   type:'contain',
+          //   w: 4,
+          //   h: 4,
+          // }
+        })
+      }
       await slide
-      .addImage({
-        path: data[i].images,
-        x: 0.2,
-        y: 1,
-        w: 3.8,
-        h: 3.8,
-        // sizing: { 
-        //   type:'contain',
-        //   w: 4,
-        //   h: 4,
-        // }
-      })
+      .addTable(rows, { x: 4.2, y: 0.2, w: "55%", fontFace:'Helvetica' })
+      .addText(`Category: ${data[i].category}`, { x: .2, y: .1, w: "35%", fill: "ffffff", color: "666666", fontSize:14, margin: .2 })
+      .addText(`URL: ${data[i].url}`, { x: .2, y: .4, w: "35%", fill: "ffffff", color: "666666", fontSize:14, margin: .2 })
+      console.log("slide created")
+
     }
-    await slide
-    .addTable(rows, { x: 4.2, y: 0.2, w: "55%", fontFace:'Helvetica' })
-    .addText(`Category: ${data[i].category}`, { x: .2, y: .1, w: "35%", fill: "ffffff", color: "666666", fontSize:14, margin: .2 })
-    .addText(`URL: ${data[i].url}`, { x: .2, y: .4, w: "35%", fill: "ffffff", color: "666666", fontSize:14, margin: .2 })
-    console.log("slide created")
   }
   let batchName = origData.batchName ? origData.batchName : "batch"
   await pres.writeFile(`${batchName}.pptx`)
