@@ -225,7 +225,7 @@ const scrape = async (data) => {
 
         var product;
         if(errorText){
-          product = {'asin': errorText}
+          product = {'asin': errorText, 'error': true}
         } else {
           var product = { 
             "asin": asin,

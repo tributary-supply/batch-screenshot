@@ -36,7 +36,10 @@ const scrape = async (data) => {
           title = document.querySelector('#productTitle') !== null ? document.querySelector('#productTitle').innerText : 'NULL'
           price = document.querySelector('#priceblock_saleprice') !== null ? document.querySelector('#priceblock_saleprice').innerText : document.querySelector('#priceblock_ourprice') !== null ? document.querySelector('#priceblock_ourprice').innerText : 'NULL';
           images = document.querySelector('.a-dynamic-image') !== null ? document.querySelector('.a-dynamic-image').src : `NULL`
+
           stars = document.querySelector('.a-icon-alt') !== null ? document.querySelector('.a-icon-alt').innerText: `NULL`
+          stars = stars.split(' ')[0]
+
           style = document.querySelector('.selection') !== null ? document.querySelector('.selection').innerText : 'NULL';
           byLine = document.querySelector('#bylineInfo') !== null ? document.querySelector('#bylineInfo').innerText : 'NULL'
           category = document.querySelector('#wayfinding-breadcrumbs_feature_div ul li:last-child span a') !== null ? document.querySelector('#wayfinding-breadcrumbs_feature_div ul li:last-child span a').innerText : 'NULL'
@@ -100,7 +103,7 @@ const scrape = async (data) => {
 
         var product;
         if(errorText){
-          product = {'asin': errorText}
+          product = {'asin': errorText, 'error': true}
         } else {
           product = { 
             "asin": asin,
