@@ -26,39 +26,43 @@ const scrape = async (data) => {
 
       var productInfo = await page.evaluate(async () => {
         
-        let errorText;
+        let errorText, title, price, images, stars, style, byLine, category, asin, buyBox, shipsFrom, availability, description, altImgs, hasAPlusContent, ratingCount, features, formattedFeatures;
         if(document.querySelector('#g > div > a > img')){
           errorText = document.querySelector('#g > div > a > img').alt
 
         } else {
           errorText = null
         
-          let title = document.querySelector('#productTitle') !== null ? document.querySelector('#productTitle').innerText : 'NULL'
-          let price = document.querySelector('#priceblock_saleprice') !== null ? document.querySelector('#priceblock_saleprice').innerText : document.querySelector('#priceblock_ourprice') !== null ? document.querySelector('#priceblock_ourprice').innerText : 'NULL';
-          let images = document.querySelector('.a-dynamic-image') !== null ? document.querySelector('.a-dynamic-image').src : `NULL`
-          let stars = document.querySelector('.a-icon-alt') !== null ? document.querySelector('.a-icon-alt').innerText: `NULL`
-          let style = document.querySelector('.selection') !== null ? document.querySelector('.selection').innerText : 'NULL';
-          let byLine = document.querySelector('#bylineInfo') !== null ? document.querySelector('#bylineInfo').innerText : 'NULL'
-          let category = document.querySelector('#wayfinding-breadcrumbs_feature_div ul li:last-child span a') !== null ? document.querySelector('#wayfinding-breadcrumbs_feature_div ul li:last-child span a').innerText : 'NULL'
-          let asin = document.querySelector('#productDetails_detailBullets_sections1 tbody tr:first-child td') !== null ? document.querySelector('#productDetails_detailBullets_sections1 tbody tr:first-child td').innerText : "NULL"
+          title = document.querySelector('#productTitle') !== null ? document.querySelector('#productTitle').innerText : 'NULL'
+          price = document.querySelector('#priceblock_saleprice') !== null ? document.querySelector('#priceblock_saleprice').innerText : document.querySelector('#priceblock_ourprice') !== null ? document.querySelector('#priceblock_ourprice').innerText : 'NULL';
+          images = document.querySelector('.a-dynamic-image') !== null ? document.querySelector('.a-dynamic-image').src : `NULL`
+          stars = document.querySelector('.a-icon-alt') !== null ? document.querySelector('.a-icon-alt').innerText: `NULL`
+          style = document.querySelector('.selection') !== null ? document.querySelector('.selection').innerText : 'NULL';
+          byLine = document.querySelector('#bylineInfo') !== null ? document.querySelector('#bylineInfo').innerText : 'NULL'
+          category = document.querySelector('#wayfinding-breadcrumbs_feature_div ul li:last-child span a') !== null ? document.querySelector('#wayfinding-breadcrumbs_feature_div ul li:last-child span a').innerText : 'NULL'
+          asin = document.querySelector('#productDetails_detailBullets_sections1 tbody tr:first-child td') !== null ? document.querySelector('#productDetails_detailBullets_sections1 tbody tr:first-child td').innerText : "NULL"
 
-          let buyBox = document.querySelector('#buy-now-button') !== null ? 'yes': 'NULL'
-          let shipsFrom = document.querySelector('#tabular-buybox-container') !== null ? document.querySelector('#tabular-buybox-container').innerHTML.includes('Amazon.com') ? 'yes': 'NULL' : 'NULL';
-          let availability = document.querySelector('#availability span') !== null ? document.querySelector('#availability span').innerText : 'NULL'
+          buyBox = document.querySelector('#buy-now-button') !== null ? 'yes': 'NULL'
+          shipsFrom = document.querySelector('#tabular-buybox-container') !== null ? document.querySelector('#tabular-buybox-container').innerHTML.includes('Amazon.com') ? 'yes': 'NULL' : 'NULL';
+          availability = document.querySelector('#availability span') !== null ? document.querySelector('#availability span').innerText : 'NULL'
           
-          let description = document.querySelector('#productDescription')
-          let altImgs = document.querySelectorAll('#altImages > ul .item')
-          let hasAPlusContent = document.querySelector('#aplus_feature_div') ? "yes" : "NULL"
-          let ratingCount = document.querySelector('#acrCustomerReviewText').innerText
+          description = document.querySelector('#productDescription')
+          altImgs = document.querySelectorAll('#altImages > ul .item')
+          hasAPlusContent = document.querySelector('#aplus_feature_div') ? "yes" : "NULL"
+          ratingCount = document.querySelector('#acrCustomerReviewText') ? document.querySelector('#acrCustomerReviewText').innerText : "NULL"
           
           reviewsLink = document.querySelector('#cr-pagination-footer-0 > a') !== null ? document.querySelector('#cr-pagination-footer-0 > a').getAttribute('href') : document.querySelector('#reviews-medley-footer > div > a') !==null ? document.querySelector('#reviews-medley-footer > div > a').getAttribute('href') : null;
 
-          let features = document.body.querySelectorAll('#feature-bullets ul li .a-list-item');
-          let formattedFeatures = [];
-          features.forEach((feature) => {
-              formattedFeatures.push(feature.innerText);
-          });
+          features = document.body.querySelectorAll('#feature-bullets ul li .a-list-item') || null;
+          formattedFeatures = [];
+          if(features!== null){
+            features.forEach((feature) => {
+                formattedFeatures.push(feature.innerText);
+            });
+          }
         }
+
+
         // let relatedDesc = document.querySelectorAll('#sims-consolidated-1_feature_div .sims-fbt-rows ul li a')  //contain the descriptions
         // let relatedLinks = document.querySelectorAll('#sims-consolidated-1_feature_div .sims-fbt-rows ul li a')  //contain the ASIDS
         // let relatedDivs = document.querySelectorAll('#sims-consolidated-1_feature_div .sims-fbt-rows ul li:not(:first-child)')  //contain the ASIDS
@@ -163,8 +167,8 @@ const scrape = async (data) => {
     console.error(error);
   });
 
-  let batchName = data.batchName ? data.batchName : "batch"
-  const issueProducts = await findIssues(scrapedData)
+  // let batchName = data.batchName ? data.batchName : "batch"
+  // const issueProducts = await findIssues(scrapedData)
 
   //append issue products to database
   // await appendIssueProducts()
