@@ -28,7 +28,7 @@ MongoClient.connect(url)
 async function updateDB(productsCollection, cronCollection){
   console.log('running cron...')
   let scrapedData = await scrapeUtils.scrape(asins)
-  console.log('SCRAPED',scrapedData)
+  // console.log('SCRAPED',scrapedData)
   await upsertMany(scrapedData, productsCollection)
 
   await cronCollection.insertOne({"Date": todaysDate})
@@ -40,7 +40,7 @@ async function upsertMany(dataArr, collection){
   try {
     for(i=0;i<dataArr.length;i++){
       const issueDayCount = await getIssueDayCount(dataArr[i], collection)
-      // console.log('issueeeeee', issueDayCount)
+      console.log('issueeeeee', dataArr[i].asin, issueDayCount)
       const query = { origAsin:  dataArr[i].origAsin}
       const options = { upsert: true };
       let update
@@ -64,11 +64,11 @@ async function upsertMany(dataArr, collection){
   
             category: dataArr[i].category,
             title: dataArr[i].title,
-            altImages: dataArr[i].altImgs ? dataArr[i].altImgs.length : 'null',
+            altImages: dataArr[i].altImgs ? dataArr[i].altImgs.length : null,
             images: dataArr[i].images,
             aPlusContent: dataArr[i].hasAPlusContent,
-            descriptionLength: dataArr[i].description ? dataArr[i].description.length : 'null',
-            bulletCount: dataArr[i].features ? dataArr[i].features.length - 1 : 'null',
+            descriptionLength: dataArr[i].description ? dataArr[i].description.length : null,
+            bulletCount: dataArr[i].features ? dataArr[i].features.length - 1 : null,
             features: dataArr[i].formattedFeatures,
             ratingCount: dataArr[i].ratingCount,
             reviewCount: dataArr[i].reviewsLink,
@@ -76,7 +76,7 @@ async function upsertMany(dataArr, collection){
             style: dataArr[i].style,
             byLine: dataArr[i].byLine,
   
-            // issueDayCount: issueDayCount,
+            issueDayCount: issueDayCount,
             // issueFirstFoundDate: new Date()
             origAsin: dataArr[i].origAsin
           }
@@ -109,38 +109,20 @@ async function getAllFromDB(collection){
 }
 
 
-// async function findIssues(data){
-//   let issueData = []
-//   data.map(item => {
-//     console.log('availablitilty', item.availability, item.availability !== 'In Stock.')
-//     if(item.price == 'NULL' || item.buyBox == 'NULL' || item.shipsFrom == 'NULL' || item.availability !== 'In Stock.'){
-//       issueData.push({
-//         asin: item.asin,
-//         title: item.title,
-//         price: item.price,
-//         buyBox: item.buyBox,
-//         shipsFrom: item.shipsFrom,
-//         availability: item.availability
-//       })
-//     }
-//   })
-//   return issueData
-// }
-
 
 async function getIssueDayCount(scrapedData, collection){
   let prod = await collection.findOne({ asin: scrapedData.asin})
   
-  if(scrapedData.price == 'NULL' || scrapedData.buyBox == 'NULL' || scrapedData.shipsFrom == 'NULL' || scrapedData.availability !== 'In Stock.'){ //if the newly scraped data has issues, see if it had issues before. if it has, add 1, if it hasn't set to 1
+  if(scrapedData.price == null || scrapedData.buyBox == null || scrapedData.shipsFrom == null || scrapedData.availability !== 'In Stock.'){ //if the newly scraped data has issues, see if it had issues before. if it has, add 1, if it hasn't set to 1
     console.log("ISSSUEEEEE")
     if(prod){  //make sure the product exists in the db
-      if(prod.price == 'NULL' || prod.buyBox == 'NULL' || prod.shipsFrom == 'NULL' || prod.availability !== 'In Stock.'){ //check that the same item in db also has issues
+
+      if(prod.price == null || prod.buyBox == null || prod.shipsFrom == null || prod.availability !== 'In Stock.'){ //check that the same item in db also has issues
         if(prod.issueDayCount >= 1){  //if it has issues and this IS NOT the first time
           return prod.issueDayCount + 1  //add 1 to issue field
         } else { //if it's the first time having an issue
           return 1
         }
-  
       } else { //if the db item doesn't have issues, then this is the first, set to 1
         return 1
       }
@@ -159,7 +141,7 @@ async function getIssueDayCount(scrapedData, collection){
 
 //SENDGRID MAIL
 const sendMail = async() => {
-  let sendTo = ['dan@sgyida.com']
+  let sendTo = process.env.EMAILS.split(',');
   // let sendTo = ['dan@sgyida.com', 'anit@sgyida.com', 'jake@sgyida.com', 'keith@sgyida.com']
   // pathToAttachment = `${__dirname}/${batchName}.pptx`;
   // attachment = await fs.readFileSync(pathToAttachment).toString("base64");

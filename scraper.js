@@ -156,23 +156,23 @@ const scrape = async (data) => {
         } else {
           errorText = null
 
-          title = document.querySelector('#productTitle') !== null ? document.querySelector('#productTitle').innerText : 'NULL'
-          price = document.querySelector('#priceblock_saleprice') !== null ? document.querySelector('#priceblock_saleprice').innerText : document.querySelector('#priceblock_ourprice') !== null ? document.querySelector('#priceblock_ourprice').innerText : 'NULL';
+          title = document.querySelector('#productTitle') !== null ? document.querySelector('#productTitle').innerText : null
+          price = document.querySelector('#priceblock_saleprice') !== null ? document.querySelector('#priceblock_saleprice').innerText : document.querySelector('#priceblock_ourprice') !== null ? document.querySelector('#priceblock_ourprice').innerText : null;
           images = document.querySelector('.a-dynamic-image') !== null ? document.querySelector('.a-dynamic-image').src : `NULL`
           stars = document.querySelector('.a-icon-alt') !== null ? document.querySelector('.a-icon-alt').innerText: `NULL`
-          style = document.querySelector('.selection') !== null ? document.querySelector('.selection').innerText : 'NULL';
-          byLine = document.querySelector('#bylineInfo') !== null ? document.querySelector('#bylineInfo').innerText : 'NULL'
-          category = document.querySelector('#wayfinding-breadcrumbs_feature_div ul li:last-child span a') !== null ? document.querySelector('#wayfinding-breadcrumbs_feature_div ul li:last-child span a').innerText : 'NULL'
-          asin = document.querySelector('#productDetails_detailBullets_sections1 tbody tr:first-child td') !== null ? document.querySelector('#productDetails_detailBullets_sections1 tbody tr:first-child td').innerText : "NULL"
+          style = document.querySelector('.selection') !== null ? document.querySelector('.selection').innerText : null;
+          byLine = document.querySelector('#bylineInfo') !== null ? document.querySelector('#bylineInfo').innerText : null
+          category = document.querySelector('#wayfinding-breadcrumbs_feature_div ul li:last-child span a') !== null ? document.querySelector('#wayfinding-breadcrumbs_feature_div ul li:last-child span a').innerText : null
+          asin = document.querySelector('#productDetails_detailBullets_sections1 tbody tr:first-child td') !== null ? document.querySelector('#productDetails_detailBullets_sections1 tbody tr:first-child td').innerText : null
   
-          buyBox = document.querySelector('#buy-now-button') !== null ? 'yes': 'NULL'
-          shipsFrom = document.querySelector('#tabular-buybox-container') !== null ? document.querySelector('#tabular-buybox-container').innerHTML.includes('Amazon.com') ? 'yes': 'NULL' : 'NULL';
-          availability = document.querySelector('#availability span') !== null ? document.querySelector('#availability span').innerText : 'NULL'
+          buyBox = document.querySelector('#buy-now-button') !== null ? 'yes': null
+          shipsFrom = document.querySelector('#tabular-buybox-container') !== null ? document.querySelector('#tabular-buybox-container').innerHTML.includes('Amazon.com') ? 'yes': null : null;
+          availability = document.querySelector('#availability span') !== null ? document.querySelector('#availability span').innerText : null
           
           description = document.querySelector('#productDescription')
           altImgs = document.querySelectorAll('#altImages > ul .item')
-          hasAPlusContent = document.querySelector('#aplus_feature_div') ? "yes" : "NULL"
-          ratingCount = document.querySelector('#acrCustomerReviewText') ? document.querySelector('#acrCustomerReviewText').innerText : "NULL"
+          hasAPlusContent = document.querySelector('#aplus_feature_div') ? "yes" : null
+          ratingCount = document.querySelector('#acrCustomerReviewText') ? document.querySelector('#acrCustomerReviewText').innerText : null
           
           reviewsLink = document.querySelector('#cr-pagination-footer-0 > a') !== null ? document.querySelector('#cr-pagination-footer-0 > a').getAttribute('href') : document.querySelector('#reviews-medley-footer > div > a') !==null ? document.querySelector('#reviews-medley-footer > div > a').getAttribute('href') : null;
   
@@ -472,7 +472,7 @@ async function findIssues(data){
   let issueData = []
   data.map(item => {
     console.log('availablitilty', item.availability, item.availability !== 'In Stock.')
-    if(item.price == 'NULL' || item.buyBox == 'NULL' || item.shipsFrom == 'NULL' || item.availability !== 'In Stock.'){
+    if(item.price == null || item.buyBox == null || item.shipsFrom == null || item.availability !== 'In Stock.'){
       issueData.push({
         asin: item.asin,
         title: item.title,
