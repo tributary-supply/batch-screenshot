@@ -118,14 +118,15 @@ async function getAllFromDB(collection){
 }
 
 
-
+//need this function to use dates instead of cronrun# to get amount of days in issues
+//need to get first date
 async function getIssueDayCount(scrapedData, collection){
   let prod;
-  if(scrapedData.asin == null){
+  // if(scrapedData.asin == null){
     prod = await collection.findOne({ origAsin: scrapedData.origAsin})
-  } else{
-    prod = await collection.findOne({ asin: scrapedData.asin})
-  }
+  // } else{
+    // prod = await collection.findOne({ asin: scrapedData.asin})
+  // }
   
   if(scrapedData.price == null || scrapedData.buyBox == null || scrapedData.shipsFrom == null || scrapedData.availability !== 'In Stock.'){ //if the newly scraped data has issues, see if it had issues before. if it has, add 1, if it hasn't set to 1
     console.log("ISSSUEEEEE")
@@ -145,9 +146,9 @@ async function getIssueDayCount(scrapedData, collection){
       return 1
     }
 
-  } else if(prod && prod.issueDayCount >= 1){ //the newly scrpaed data didn't have any issues, set to null - if the db data had issues and the scraped data doesn't have issues
+  } else if(prod && prod.issueDayCount >= 1){ //if the db data had issues and the scraped data doesn't have issues, it must be fixed!
     return `Fixed after ${prod.issueDayCount} days`
-  } else {
+  } else { //the newly scrpaed data didn't have any issues, set to null
     return null
   }
 
@@ -158,7 +159,6 @@ async function getIssueDayCount(scrapedData, collection){
 //SENDGRID MAIL
 const sendMail = async() => {
   let sendTo = process.env.EMAILS.split(',');
-  // let sendTo = ['dan@sgyida.com', 'anit@sgyida.com', 'jake@sgyida.com', 'keith@sgyida.com']
   // pathToAttachment = `${__dirname}/${batchName}.pptx`;
   // attachment = await fs.readFileSync(pathToAttachment).toString("base64");
   
