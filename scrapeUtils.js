@@ -195,6 +195,7 @@ async function findIssues(data){
     if(item.price == null || item.buyBox == null || item.shipsFrom == null || item.availability !== 'In Stock.'){
       issueData.push({
         asin: item.asin,
+        origAsin: item.origAsin,
         title: item.title,
         price: item.price,
         buyBox: item.buyBox,
@@ -205,6 +206,27 @@ async function findIssues(data){
     }
   })
   return issueData
+}
+
+async function findFixed(data){
+  let fixedData = []
+  data.map(item => {
+    console.log('issuedaycount', item.asin, item.issueDayCount, typeof(item.issueDayCount), isNaN(item.issueDayCount))
+    if(item.issueDayCount !== null && isNaN(item.issueDayCount) && item.issueDayCount.includes("Fixed")){
+      fixedData.push({
+        asin: item.asin,
+        origAsin: item.origAsin,
+        title: item.title,
+        price: item.price,
+        buyBox: item.buyBox,
+        shipsFrom: item.shipsFrom,
+        availability: item.availability,
+        issueDayCount: item.issueDayCount
+      })
+    }
+  })
+  // console.log("fixed DATA", fixedData)
+  return fixedData
 }
 
 function formatData(dataArr){
@@ -226,5 +248,6 @@ function formatData(dataArr){
 
 module.exports = {
   scrape,
-  findIssues
+  findIssues,
+  findFixed
 }
