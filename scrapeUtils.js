@@ -201,7 +201,8 @@ async function findIssues(data){
         buyBox: item.buyBox,
         shipsFrom: item.shipsFrom,
         availability: item.availability,
-        issueDayCount: item.issueDayCount
+        issueDayCount: item.issueDayCount,
+        timesFixed: item.timesFixed
       })
     }
   })
@@ -211,7 +212,7 @@ async function findIssues(data){
 async function findFixed(data){
   let fixedData = []
   data.map(item => {
-    console.log('issuedaycount', item.asin, item.issueDayCount, typeof(item.issueDayCount), isNaN(item.issueDayCount))
+    console.log( item.asin, 'issuedaycount', item.issueDayCount, 'timesfixed', item.timesFixed)
     if(item.issueDayCount !== null && isNaN(item.issueDayCount) && item.issueDayCount.includes("Fixed")){
       fixedData.push({
         asin: item.asin,
@@ -221,7 +222,8 @@ async function findFixed(data){
         buyBox: item.buyBox,
         shipsFrom: item.shipsFrom,
         availability: item.availability,
-        issueDayCount: item.issueDayCount
+        issueDayCount: item.issueDayCount,
+        timesFixed: item.timesFixed
       })
     }
   })

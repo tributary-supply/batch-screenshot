@@ -6,6 +6,7 @@ const MongoClient = require('mongodb').MongoClient;
 const sgMail = require('@sendgrid/mail');
 const fs = require("fs");
 const asins = require('./asinList').asins
+const testData = require('./asinList').testData
 // const asins = require('./asinList').asins2
 const csv = require('./csv');
 
@@ -27,7 +28,8 @@ MongoClient.connect(url)
 
 async function updateDB(productsCollection, cronCollection){
   console.log('running cron...')
-  let scrapedData = await scrapeUtils.scrape(asins)
+  let scrapedData = await scrapeUtils.scrape(asins) //USE FOR PRODUCTION---------
+  // let scrapedData = testData // USE FOR TESTING-------------------------------------
   // console.log('SCRAPED',scrapedData)
   await upsertMany(scrapedData, productsCollection)
 
@@ -40,6 +42,9 @@ async function upsertMany(dataArr, collection){
   try {
     for(i=0;i<dataArr.length;i++){
       const issueDayCount = await getIssueDayCount(dataArr[i], collection)
+
+      const timesFixed = await getTimesFixed(dataArr[i], collection, issueDayCount)
+      
       // console.log('issueeeeee', dataArr[i].asin, issueDayCount)
       const query = { origAsin:  dataArr[i].origAsin}
       const options = { upsert: true };
@@ -77,6 +82,7 @@ async function upsertMany(dataArr, collection){
             byLine: dataArr[i].byLine,
   
             issueDayCount: issueDayCount,
+            timesFixed: timesFixed,
             // issueFirstFoundDate: new Date()
             origAsin: dataArr[i].origAsin
           }
@@ -122,11 +128,7 @@ async function getAllFromDB(collection){
 //need to get first date
 async function getIssueDayCount(scrapedData, collection){
   let prod;
-  // if(scrapedData.asin == null){
-    prod = await collection.findOne({ origAsin: scrapedData.origAsin})
-  // } else{
-    // prod = await collection.findOne({ asin: scrapedData.asin})
-  // }
+  prod = await collection.findOne({ origAsin: scrapedData.origAsin})
   
   if(scrapedData.price == null || scrapedData.buyBox == null || scrapedData.shipsFrom == null || scrapedData.availability !== 'In Stock.'){ //if the newly scraped data has issues, see if it had issues before. if it has, add 1, if it hasn't set to 1
     console.log("ISSSUEEEEE")
@@ -152,6 +154,28 @@ async function getIssueDayCount(scrapedData, collection){
     return null
   }
 
+}
+
+async function getTimesFixed(scrapedData, collection, issueDayCount){ //needs to return a number, 0 if none fixed and increment if 'fixed'
+  let timesFixed;
+  const prod = await collection.findOne({ origAsin: scrapedData.origAsin})
+  if(prod){
+    if(prod.timesFixed == null){ //this is a new product and will get 0 assigned to timesfixed
+      timesFixed = 0;
+      console.log('NEW PRODUCT GETTING 0 ASSIGNED')
+    } 
+    if(issueDayCount == null || typeof(issueDayCount) == 'number'){  //make sure issuedaycount isnt a number or null - if it is then that means it can't say fixed - need to do this first becuase includes throws an error on null
+      timesFixed = prod.timesFixed;
+      console.log('MUST BE NULL ISSUEDAYCOUNT OR ISSUEDAYCOUNT IS A NUMBER')
+  
+    } else if(issueDayCount.includes('Fixed')){ //if this item listing has had an issue and then been fixed
+      timesFixed = prod.timesFixed + 1
+      console.log('HAS "FIXED" IN ISSUEDAYCOUNT')
+      }
+  } else{
+    timesFixed = 0
+  }
+  return timesFixed
 }
 
 
