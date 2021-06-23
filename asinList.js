@@ -1,3 +1,84 @@
+const testData = [
+  {
+    asin: 'B07GF4ZR17',
+    price: '$25.32',
+    buyBox: 'yes',
+    shipsFrom: 'yes',
+    availability: 'In Stock.',
+    category: 'Hinges',
+    title: 'Amazon Basics Rounded 3.5 Inch x 3.5 Inch Door Hinges, 18 Pack, Matte Black',
+    altImages: 5,
+    images: 'https://images-na.ssl-images-amazon.com/images/I/51cRc6otPZL._AC_SY355_PIbundle-18,TopRight,0,0_SH20_.jpg',
+    aPlusContent: 'yes',
+    bulletCount: 5,
+    features: [
+      '\n Make sure this fits\nby entering your model number.\n\n',
+      'Durable steel construction',
+      'Pack includes 18 total hinges',
+      'Mounting hardware included',
+      'Detailed installation instructions included',
+      'Backed by an Amazon Basics 1-year limited warranty'
+    ],
+    ratingCount: '7,899 ratings',
+    reviewCount: '702',
+    stars: '4.8',
+    style: 'Matte Black',
+    byLine: 'Visit the Amazon Basics Store',
+    origAsin: 'B07GF4ZR17'
+  },
+  {
+    asin: 'B07GDXCPGD',
+    price: '$25.32',
+    buyBox: 'yes',
+    shipsFrom: 'yes',
+    availability: 'In Stock.',
+    category: 'Hinges',
+    title: 'Amazon Basics Rounded 3.5 Inch x 3.5 Inch Door Hinges, 18 Pack, Oil Rubbed Bronze',
+    altImages: 5,
+    images: 'https://images-na.ssl-images-amazon.com/images/I/61NqXjGQrrL._AC_SY355_PIbundle-18,TopRight,0,0_SH20_.jpg',
+    aPlusContent: 'yes',
+    bulletCount: 5,
+    features: [
+      '\n Make sure this fits\nby entering your model number.\n\n',
+      'Durable steel construction',
+      'Pack includes 18 total hinges',
+      'Mounting hardware included',
+      'Detailed installation instructions included',
+      'Backed by an Amazon Basics 1-year limited warranty'
+    ],
+    ratingCount: '7,899 ratings',
+    reviewCount: '702',
+    stars: '4.8',
+    style: 'Oil-Rubbed Bronze',
+    byLine: 'Visit the Amazon Basics Store',
+    origAsin: 'B07GDXCPGD'
+  },
+  {
+    asin: 'B01MUCW80B',
+    price: '$33.57',
+    buyBox: 'yes',
+    shipsFrom: 'yes',
+    availability: 'In Stock.',
+    category: 'Pulls',
+    title: 'Amazon Basics Euro Bar Cabinet Handle (1/2-inch Diameter), 5.38-inch Length (3-inch Hole Center), Satin Nickel, 25-Pack',
+    altImages: 5,
+    images: 'https://images-na.ssl-images-amazon.com/images/I/61xR2xnMWvL._AC_SY355_.jpg',
+    aPlusContent: 'yes',
+    bulletCount: 2,
+    features: [
+      '\n Make sure this fits\nby entering your model number.\n\n',
+      'Projection: 1.38-inch',
+      'Fits most cabinets; includes 1-inch & 1.5-inch mounting screws; you may need to purchase screws of additional length depending on your cabinet’s width; machine screw metric size: M8-32.'
+    ],
+    ratingCount: '10,480 ratings',
+    reviewCount: '2,803',
+    stars: '4.8',
+    style: 'Satin Nickel',
+    byLine: 'Visit the Amazon Basics Store',
+    origAsin: 'B01MUCW80B'
+  }
+]
+
 const asins = [
   'B07GF4ZR17',
   'B07GDXCPGD',
@@ -381,7 +462,8 @@ const asins2 = [
 
 module.exports = {
   asins,
-  asins2
+  asins2,
+  testData
 }
 
 
