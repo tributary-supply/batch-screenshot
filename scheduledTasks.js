@@ -159,19 +159,22 @@ async function getIssueDayCount(scrapedData, collection){
 async function getTimesFixed(scrapedData, collection, issueDayCount){ //needs to return a number, 0 if none fixed and increment if 'fixed'
   let timesFixed;
   const prod = await collection.findOne({ origAsin: scrapedData.origAsin})
-
-  if(prod == null){ //this is a new product and will get 0 assigned to timesfixed
-    timesFixed = 0;
-    console.log('NEW PRODUCT GETTING 0 ASSIGNED')
-  } 
-  if(issueDayCount == null || typeof(issueDayCount) == 'number'){  //make sure issuedaycount isnt a number or null - if it is then that means it can't say fixed - need to do this first becuase includes throws an error on null
-    timesFixed = prod.timesFixed;
-    console.log('MUST BE NULL ISSUEDAYCOUNT OR ISSUEDAYCOUNT IS A NUMBER')
-
-  } else if(issueDayCount.includes('Fixed')){ //if this item listing has had an issue and then been fixed
-    timesFixed = prod.timesFixed + 1
-    console.log('HAS "FIXED" IN ISSUEDAYCOUNT')
-    }
+  if(prod){
+    if(prod.timesFixed == null){ //this is a new product and will get 0 assigned to timesfixed
+      timesFixed = 0;
+      console.log('NEW PRODUCT GETTING 0 ASSIGNED')
+    } 
+    if(issueDayCount == null || typeof(issueDayCount) == 'number'){  //make sure issuedaycount isnt a number or null - if it is then that means it can't say fixed - need to do this first becuase includes throws an error on null
+      timesFixed = prod.timesFixed;
+      console.log('MUST BE NULL ISSUEDAYCOUNT OR ISSUEDAYCOUNT IS A NUMBER')
+  
+    } else if(issueDayCount.includes('Fixed')){ //if this item listing has had an issue and then been fixed
+      timesFixed = prod.timesFixed + 1
+      console.log('HAS "FIXED" IN ISSUEDAYCOUNT')
+      }
+  } else{
+    timesFixed = 0
+  }
   return timesFixed
 }
 
