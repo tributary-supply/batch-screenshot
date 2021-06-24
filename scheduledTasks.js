@@ -24,14 +24,14 @@ MongoClient.connect(url)
   const cronCollection = db.collection('cron');
   await updateDB(productsCollection, cronCollection) //updates the products AND cron
   let dbData = await getAllFromDB(productsCollection) //gets all data from db and creates CSVs
-  // await sendMail(dbData) //sends mail to designated addresses ------------------------------------------------------------------------------------------------TURN OFF FOR DEVELOPMENT
+  await sendMail(dbData) //sends mail to designated addresses ------------------------------------------------------------------------------------------------TURN OFF FOR DEVELOPMENT
   await removeAllCsv() //deletes the csvs
 })
 
 async function updateDB(productsCollection, cronCollection){
   console.log('running cron...')
-  // let scrapedData = await scrapeUtils.scrape(asins) //USE FOR PRODUCTION-----------------------------------------------------------------------------------------
-  let scrapedData = testData // USE FOR TESTING---------------------------------------------------------------------------------------------------------------------
+  let scrapedData = await scrapeUtils.scrape(asins) //USE FOR PRODUCTION-----------------------------------------------------------------------------------------
+  // let scrapedData = testData // USE FOR TESTING---------------------------------------------------------------------------------------------------------------------
   // console.log('SCRAPED',scrapedData)
   await upsertMany(scrapedData, productsCollection)
   await cronCollection.insertOne({"Date": todaysDate})
