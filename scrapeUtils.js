@@ -202,7 +202,9 @@ async function findIssues(data){
         shipsFrom: item.shipsFrom,
         availability: item.availability,
         issueDayCount: item.issueDayCount,
-        timesFixed: item.timesFixed
+        timesFixed: item.timesFixed,
+        issueField: item.issueField
+        // add a field
       })
     }
   })
@@ -212,7 +214,7 @@ async function findIssues(data){
 async function findFixed(data){
   let fixedData = []
   data.map(item => {
-    console.log( item.asin, 'issuedaycount', item.issueDayCount, 'timesfixed', item.timesFixed)
+    console.log( item.asin, 'issuedaycount', item.issueDayCount, 'timesfixed', item.timesFixed, 'issuefield', item.issueField)
     if(item.issueDayCount !== null && isNaN(item.issueDayCount) && item.issueDayCount.includes("Fixed")){
       fixedData.push({
         asin: item.asin,
@@ -223,7 +225,8 @@ async function findFixed(data){
         shipsFrom: item.shipsFrom,
         availability: item.availability,
         issueDayCount: item.issueDayCount,
-        timesFixed: item.timesFixed
+        timesFixed: item.timesFixed,
+        issueField: item.issueField
       })
     }
   })

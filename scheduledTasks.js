@@ -12,7 +12,10 @@ const csv = require('./csv');
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 const url = process.env.MONGO_URL;
+
 let todaysDate = new Date()
+// todaysDate = `${todaysDate.getMonth()}-${todaysDate.getDay()}-${todaysDate.getFullYear()}`
+console.log("TODAYS DATE",todaysDate)
 
 MongoClient.connect(url)
 .then(async client =>{
@@ -21,20 +24,17 @@ MongoClient.connect(url)
   const cronCollection = db.collection('cron');
   await updateDB(productsCollection, cronCollection) //updates the products AND cron
   let dbData = await getAllFromDB(productsCollection) //gets all data from db and creates CSVs
-  await sendMail(dbData)
-  // await console.log(dbData)
-  // await updateCronDb(cronCollection)
+  // await sendMail(dbData) //sends mail to designated addresses ------------------------------------------------------------------------------------------------TURN OFF FOR DEVELOPMENT
+  await removeAllCsv() //deletes the csvs
 })
 
 async function updateDB(productsCollection, cronCollection){
   console.log('running cron...')
-  let scrapedData = await scrapeUtils.scrape(asins) //USE FOR PRODUCTION---------
-  // let scrapedData = testData // USE FOR TESTING-------------------------------------
+  // let scrapedData = await scrapeUtils.scrape(asins) //USE FOR PRODUCTION-----------------------------------------------------------------------------------------
+  let scrapedData = testData // USE FOR TESTING---------------------------------------------------------------------------------------------------------------------
   // console.log('SCRAPED',scrapedData)
   await upsertMany(scrapedData, productsCollection)
-
   await cronCollection.insertOne({"Date": todaysDate})
-
 }
 
 
@@ -42,63 +42,49 @@ async function upsertMany(dataArr, collection){
   try {
     for(i=0;i<dataArr.length;i++){
       const issueDayCount = await getIssueDayCount(dataArr[i], collection)
+      const timesFixed = await getTimesFixed(dataArr[i], collection, issueDayCount[0])
 
-      const timesFixed = await getTimesFixed(dataArr[i], collection, issueDayCount)
-      
-      // console.log('issueeeeee', dataArr[i].asin, issueDayCount)
       const query = { origAsin:  dataArr[i].origAsin}
       const options = { upsert: true };
-      let update
-      // if(dataArr[i].error == true){
-      //   update = {
-      //     $set: {
-      //       asin: dataArr[i].asin,
-      //       error: dataArr[i].error,
-      //       origAsin: dataArr[i].origAsin
-      //     }
-      //   }
-      // } else{
-        update = {
-          $set: {
-            asin: dataArr[i].asin,
-            title: dataArr[i].title,
-            price: dataArr[i].price,
-            buyBox: dataArr[i].buyBox,
-            shipsFrom: dataArr[i].shipsFrom,
-            availability: dataArr[i].availability,
-  
-            category: dataArr[i].category,
-            title: dataArr[i].title,
-            altImages: dataArr[i].altImgs ? dataArr[i].altImgs.length : null,
-            images: dataArr[i].images,
-            aPlusContent: dataArr[i].hasAPlusContent,
-            descriptionLength: dataArr[i].description ? dataArr[i].description.length : null,
-            bulletCount: dataArr[i].features ? dataArr[i].features.length - 1 : null,
-            features: dataArr[i].formattedFeatures,
-            ratingCount: dataArr[i].ratingCount,
-            reviewCount: dataArr[i].reviewsLink,
-            stars: dataArr[i].stars,
-            style: dataArr[i].style,
-            byLine: dataArr[i].byLine,
-  
-            issueDayCount: issueDayCount,
-            timesFixed: timesFixed,
-            // issueFirstFoundDate: new Date()
-            origAsin: dataArr[i].origAsin
-          }
+      let update = {
+        $set: {
+          origAsin: dataArr[i].origAsin,
+          asin: dataArr[i].asin,
+          title: dataArr[i].title,
+          price: dataArr[i].price,
+          buyBox: dataArr[i].buyBox,
+          shipsFrom: dataArr[i].shipsFrom,
+          availability: dataArr[i].availability,
+
+          category: dataArr[i].category,
+          title: dataArr[i].title,
+          altImages: dataArr[i].altImgs ? dataArr[i].altImgs.length : null,
+          images: dataArr[i].images,
+          aPlusContent: dataArr[i].hasAPlusContent,
+          descriptionLength: dataArr[i].description ? dataArr[i].description.length : null,
+          bulletCount: dataArr[i].features ? dataArr[i].features.length - 1 : null,
+          features: dataArr[i].formattedFeatures,
+          ratingCount: dataArr[i].ratingCount,
+          reviewCount: dataArr[i].reviewsLink,
+          stars: dataArr[i].stars,
+          style: dataArr[i].style,
+          byLine: dataArr[i].byLine,
+
+          issueDayCount: issueDayCount[0],
+          issueField: issueDayCount[1],
+          timesFixed: timesFixed,
+          firstIssueDate: issueDayCount[2],
         }
+      }
       // }
       const result = await collection.updateOne(query, update, options)
       // console.log(`${result} documents were inserted`);
       console.log('object inserted')
     }
-    // await console.log('new data updated to db')
   } catch(err){
     console.log(err)
   } finally {
     console.log('done adding data to mongoDB')
-
-    // await client.close();
   }
 }
 
@@ -111,6 +97,11 @@ async function getAllFromDB(collection){
   await csv.createCSV(results, `all products for ${todaysDate}`)
   
   let issueData = await scrapeUtils.findIssues(results)
+  if(issueData.length < 1){ //if there are no products that were fixed this time around, send a default msg in csv
+    issueData = [{
+      data:'no products were fixed since last cronjob',
+    }]
+  }
   await csv.createErrorCSV(issueData, `issues for ${todaysDate}`)
 
   let fixedData = await scrapeUtils.findFixed(results)
@@ -120,40 +111,35 @@ async function getAllFromDB(collection){
     }]
   }
   await csv.createFixedCSV(fixedData, `fixes for ${todaysDate}`)
-  // console.log(results)
 }
 
-
-//need this function to use dates instead of cronrun# to get amount of days in issues
-//need to get first date
 async function getIssueDayCount(scrapedData, collection){
   let prod;
   prod = await collection.findOne({ origAsin: scrapedData.origAsin})
-  
   if(scrapedData.price == null || scrapedData.buyBox == null || scrapedData.shipsFrom == null || scrapedData.availability !== 'In Stock.'){ //if the newly scraped data has issues, see if it had issues before. if it has, add 1, if it hasn't set to 1
     console.log("ISSSUEEEEE")
+    let issue = getIssuesArr(scrapedData)
+    
     if(prod){  //make sure the product exists in the db
-
       if(prod.price == null || prod.buyBox == null || prod.shipsFrom == null || prod.availability !== 'In Stock.'){ //check that the same item in db also has issues
         if(prod.issueDayCount >= 1){  //if it has issues and this IS NOT the first time
-          return prod.issueDayCount + 1  //add 1 to issue field
+          let comparedDates = compareDates(prod.firstIssueDate, todaysDate)
+          let days = comparedDates > 1 ? Math.floor(comparedDates) : 1;
+          return [days, issue, prod.firstIssueDate]  //add 1 to issue field
         } else { //if it's the first time having an issue
-          return 1
+          return [1, issue, todaysDate] 
         }
       } else { //if the db item doesn't have issues, then this is the first, set to 1
-        return 1
+        return [1, issue, todaysDate] 
       }
-  
     } else { //the product didn't exist in the db and the newlty scraped data has issues
-      return 1
+      return [1, issue, todaysDate] 
     }
-
   } else if(prod && prod.issueDayCount >= 1){ //if the db data had issues and the scraped data doesn't have issues, it must be fixed!
-    return `Fixed after ${prod.issueDayCount} days`
+    return [`Fixed after ${prod.issueDayCount} days`, prod.issueField]
   } else { //the newly scrpaed data didn't have any issues, set to null
-    return null
+    return [null]
   }
-
 }
 
 async function getTimesFixed(scrapedData, collection, issueDayCount){ //needs to return a number, 0 if none fixed and increment if 'fixed'
@@ -199,7 +185,6 @@ const sendMail = async() => {
   let csvName = `all products for ${todaysDate}.csv`
   let csvIssuesName = `issues for ${todaysDate}-issues.csv`
   let csvFixedName = `fixes for ${todaysDate}-fixed.csv`
-  // console.log("BATCHNAMMEEEEEE", pptName, csvName, csvIssuesName)
 
   const msg = {
     to: sendTo,
@@ -253,6 +238,9 @@ const sendMail = async() => {
   //   if (err) throw err;
   //   console.log(`${batchName}.pptx was deleted`);
   // });
+}
+
+async function removeAllCsv(){
   await fs.unlink(`all products for ${todaysDate}.csv`, (err) => {
     if (err) throw err;
     console.log(`all products for ${todaysDate}.csv was deleted`);
@@ -265,4 +253,24 @@ const sendMail = async() => {
     if (err) throw err;
     console.log(`fixes for ${todaysDate}-fixed.csv was deleted`);
   });
+}
+
+function compareDates(date1, date2){
+  var date1 = new Date(date1);
+  var date2 = new Date(date2);
+  // console.log(date1)
+  // console.log(date2)
+  var Difference_In_Time = date2.getTime() - date1.getTime();  // To calculate the time difference of two dates
+  var Difference_In_Days = Difference_In_Time / (1000 * 3600 * 24);  // To calculate the no. of days between two dates
+  console.log(Difference_In_Days)
+  return Difference_In_Days
+}
+
+function getIssuesArr(scrapedData){
+  let resultArr = []
+  scrapedData.price == null ? resultArr.push('price') : null
+  scrapedData.buyBox == null ? resultArr.push('buyBox') : null
+  scrapedData.shipsFrom == null ? resultArr.push('shipsFrom') : null
+  scrapedData.availability !== 'In Stock.' ? resultArr.push('availability') : null
+  return resultArr
 }
