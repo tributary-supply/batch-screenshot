@@ -38,6 +38,7 @@ var app = express();
 const url = process.env.MONGO_URL;
 var timeout;
 var emailZip = '';
+let todaysDate = new Date()
 
 //mongo 
 // MongoClient.connect(url)
@@ -132,11 +133,13 @@ const scrape = async (data) => {
     await page.setDefaultNavigationTimeout(0);
 
     for (i = 0; i < formattedUrlsArr.length; i++) {
+      let currentUrl = formattedUrlsArr[i]
       try {
-        console.log(`working on ${i+1} of ${formattedUrlsArr.length} ... `,formattedUrlsArr[i])
-        await page.goto(formattedUrlsArr[i], 
-          // {waitUntil: 'load', timeout: 0}
-          );
+        console.log(`working on ${i+1} of ${formattedUrlsArr.length} ... `,currentUrl)
+        await page.goto(currentUrl, {
+        waitUntil: 'load',
+        timeout: 0 // Remove the timeout
+      });
         await page.waitForSelector('body');
         
       } catch (error) {
@@ -157,14 +160,19 @@ const scrape = async (data) => {
           errorText = null
 
           title = document.querySelector('#productTitle') !== null ? document.querySelector('#productTitle').innerText : null
-          price = document.querySelector('#priceblock_saleprice') !== null ? document.querySelector('#priceblock_saleprice').innerText : document.querySelector('#priceblock_ourprice') !== null ? document.querySelector('#priceblock_ourprice').innerText : null;
-          images = document.querySelector('.a-dynamic-image') !== null ? document.querySelector('.a-dynamic-image').src : `NULL`
-          stars = document.querySelector('.a-icon-alt') !== null ? document.querySelector('.a-icon-alt').innerText: `NULL`
+          price = document.querySelector('#priceblock_saleprice') !== null ? document.querySelector('#priceblock_saleprice').innerText 
+            : document.querySelector('#priceblock_ourprice') !== null ? document.querySelector('#priceblock_ourprice').innerText 
+            : document.querySelector('#priceblock_dealprice') !== null ? document.querySelector('#priceblock_dealprice').innerText : null;
+          images = document.querySelector('.a-dynamic-image') !== null ? document.querySelector('.a-dynamic-image').src : null
+
+          stars = document.querySelector('.a-icon-alt') !== null ? document.querySelector('.a-icon-alt').innerText : null
+          stars = stars != null ? stars.split(' ')[0] : null
+
           style = document.querySelector('.selection') !== null ? document.querySelector('.selection').innerText : null;
           byLine = document.querySelector('#bylineInfo') !== null ? document.querySelector('#bylineInfo').innerText : null
           category = document.querySelector('#wayfinding-breadcrumbs_feature_div ul li:last-child span a') !== null ? document.querySelector('#wayfinding-breadcrumbs_feature_div ul li:last-child span a').innerText : null
-          asin = document.querySelector('#productDetails_detailBullets_sections1 tbody tr:first-child td') !== null ? document.querySelector('#productDetails_detailBullets_sections1 tbody tr:first-child td').innerText : formattedUrlsArr[i].split("/dp/")[1]
-  
+          asin = document.querySelector('#productDetails_detailBullets_sections1 tbody tr:first-child td') !== null ? document.querySelector('#productDetails_detailBullets_sections1 tbody tr:first-child td').innerText : null
+
           buyBox = document.querySelector('#buy-now-button') !== null ? 'yes': null
           shipsFrom = document.querySelector('#tabular-buybox-container') !== null ? document.querySelector('#tabular-buybox-container').innerHTML.includes('Amazon.com') ? 'yes': null : null;
           availability = document.querySelector('#availability span') !== null ? document.querySelector('#availability span').innerText : null
@@ -175,7 +183,7 @@ const scrape = async (data) => {
           ratingCount = document.querySelector('#acrCustomerReviewText') ? document.querySelector('#acrCustomerReviewText').innerText : null
           
           reviewsLink = document.querySelector('#cr-pagination-footer-0 > a') !== null ? document.querySelector('#cr-pagination-footer-0 > a').getAttribute('href') : document.querySelector('#reviews-medley-footer > div > a') !==null ? document.querySelector('#reviews-medley-footer > div > a').getAttribute('href') : null;
-  
+
           features = document.body.querySelectorAll('#feature-bullets ul li .a-list-item') || null;
           formattedFeatures = [];
           if(features!== null){
@@ -247,18 +255,13 @@ const scrape = async (data) => {
             "style": style,
             "byLine": byLine,
 
-
             // "relatedProducts": related,
-
             // "relAsin" : related.length > 0 ? related[0].relAsin : 'none',
             // "relPrice" : related.length > 0 ? related[0].relPrice : 'none',
             // "relDescription" : related.length > 0 ? related[0].relDescription : 'none',
-
             // "relAsin2" : related.length > 1 ? related[1].relAsin2 : 'none',
             // "relPrice2" : related.length > 1 ? related[1].relPrice2 : 'none',
             // "relDescription2" : related.length > 1 ? related[1].relDescription2 : 'none',
-
-
             // "rel asin" : related[0].relAsin ? related[0].relAsin : 'none',
             // "rel price": related[0].relPrice,
             // "rel description": related[0].relDescription,
@@ -270,7 +273,9 @@ const scrape = async (data) => {
         }
         return product;
       });
-      productInfo.origAsin = formattedUrlsArr[i].split("/dp/")[1]
+      productInfo.origAsin = currentUrl.split("/dp/")[1]
+
+      
 
       // console.log(`https://www.amazon.com${productInfo.reviewCount}`)
       if(productInfo.reviewCount){
@@ -291,37 +296,20 @@ const scrape = async (data) => {
       // })
     }
     // console.log("SCRAPE", scrapedData)
-    // page.close();
     await browser.close();
   }).catch(function(error) {
     console.error(error);
   });
   
-  //testing
-  // let batchName = "batch"
-  // scrapedData.splice(0,0,{  //this adds a header row
-  //   "title": '',
-  //   "asid": '',
-  //   "price": '',
-  //   "rel asin" : '',
-  //   "rel price": '',
-  //   "rel description": '',
-  //   "rel asin 2" : '',
-  //   "rel price 2": '',
-  //   "rel description 2": ''
-  // })
-  // createPPT(scrapedData, data)  //ORIGINAL PATH
-  // await csv.createCSV(scrapedData, 'testing-2')
-  // await csv.createCSV(scrapedData, data.batchName)
-  
   let batchName = data.batchName ? data.batchName : "batch"
   const issueProducts = await findIssues(scrapedData)
   
-  
   await csv.createErrorCSV(issueProducts, batchName)
   await csv.createCSV(scrapedData, batchName)
-  
   await createPPT(scrapedData, data)
+  await sendMail(scrapedData, data, batchName)
+  await removeAllCsv(batchName)
+
   await console.log('finished')
   return scrapedData
 }
@@ -333,20 +321,21 @@ async function createPPT(data, origData){
   // 1. Create a new Presentation
   let pres = await new pptxgen();
   for (i=0;i<data.length;i++){
-    if (data[i].asin.includes('Sorry')){
-      continue
-    }else {
+    // console.log('ASIN IN PPT FUNC', data[i].asin)
+    // if (data[i].asin.includes('Sorry')){
+    //   continue
+    // }else {
       let slide = await pres.addSlide();
       let rows = []
       // rows.push(["First", "Second", "Third"]);
-      rows.push([{ text: `TITLE: ${data[i].title}`, options: { color: "2d2d2d", bold: true, fontSize: 12 } }]);
+      rows.push([{ text: `${data[i].title}`, options: { color: "2d2d2d", bold: true, fontSize: 12 } }]);
       rows.push([{ text: `MADE BY: ${data[i].byLine}`, options: { color: "666666", fontSize: 8} }]);
       rows.push([{ text: `${data[i].price}`, options: { color: "2d2d2d", fontSize: 10 } }]);
-      rows.push([{ text: `${data[i].stars}`, options: { color: "2d2d2d", fontSize: 10 } }]);
-      rows.push([{ text: `${data[i].style}`, options: { color: "2d2d2d", fontSize: 10 } }]);
+      rows.push([{ text: `Stars: ${data[i].stars}`, options: { color: "2d2d2d", fontSize: 10 } }]);
+      rows.push([{ text: `Style: ${data[i].style}`, options: { color: "2d2d2d", fontSize: 10 } }]);
   
       for (j = 1; j < data[i].features.length; j++) {
-        rows.push([{ text: `${data[i].features[j]}`, options: { color: "2d2d2d", fontSize: 8 } }]);
+        rows.push([{ text: `Feature ${j}: ${data[i].features[j]}`, options: { color: "2d2d2d", fontSize: 8 } }]);
       };
   
       if (data[i].images !== "no image") {
@@ -357,30 +346,21 @@ async function createPPT(data, origData){
           y: 1,
           w: 3.8,
           h: 3.8,
-          // sizing: { 
-          //   type:'contain',
-          //   w: 4,
-          //   h: 4,
-          // }
         })
       }
       await slide
       .addTable(rows, { x: 4.2, y: 0.2, w: "55%", fontFace:'Helvetica' })
       .addText(`Category: ${data[i].category}`, { x: .2, y: .1, w: "35%", fill: "ffffff", color: "666666", fontSize:14, margin: .2 })
-      .addText(`URL: ${data[i].url}`, { x: .2, y: .4, w: "35%", fill: "ffffff", color: "666666", fontSize:14, margin: .2 })
+      // .addText(`URL: https://www.amazon.com/dp/${data[i].sku}`, { x: .2, y: .4, w: "35%", fill: "ffffff", color: "666666", fontSize:14, margin: .2 })
+      .addText(`Original ASIN: ${data[i].origAsin}`, { x: .2, y: .4, w: "35%", fill: "ffffff", color: "666666", fontSize:14, margin: .2 })
+      .addText(`ASIN: ${data[i].asin}`, { x: .2, y: .6, w: "35%", fill: "ffffff", color: "666666", fontSize:14, margin: .2 })
       console.log("slide created")
 
-    }
+    // }
   }
   let batchName = origData.batchName ? origData.batchName : "batch"
   await pres.writeFile(`${batchName}.pptx`)
   await console.log(`${batchName}.pptx saved`)
-  // await csv.createCSV(data, batchName)
-
-  // const issueProducts = await findIssues(data)
-
-  // await csv.createErrorCSV(issueProducts, batchName)
-  await sendMail(data, origData, batchName)
 }
 
 
@@ -388,17 +368,16 @@ async function createPPT(data, origData){
 const sendMail = async(inputData, origData, batchName) => {
   pathToAttachment = `${__dirname}/${batchName}.pptx`;
   attachment = await fs.readFileSync(pathToAttachment).toString("base64");
-  
   pathToAttachment2 = `${__dirname}/${batchName}.csv`;
   attachment2 = await fs.readFileSync(pathToAttachment2).toString("base64");
-
   pathToAttachment3 = `${__dirname}/${batchName}-issues.csv`;
   attachment3 = await fs.readFileSync(pathToAttachment3).toString("base64");
 
   let pptName = `${origData.batchName}.pptx`
   let csvName = `${origData.batchName}.csv`
   let csvIssuesName = `${origData.batchName}-issues.csv`
-  console.log("BATCHNAMMEEEEEE", pptName, csvName, csvIssuesName)
+
+  const formattedDate = formatDate(todaysDate)
 
   const msg = {
     to: origData.sendZipEmail,
@@ -406,6 +385,7 @@ const sendMail = async(inputData, origData, batchName) => {
     subject: `${origData.batchName} --- Tributary Supply Scraper`,
     html: `
       <h1>${origData.batchName}</h1>
+      <h3> Date scraped: ${formattedDate} </h3>
       <h3>3 files attached: ppt, csv & issues csv</h3>
       <p> ${origData.message} </p>
       <h4>ASID/URL List:</h4>
@@ -442,18 +422,6 @@ const sendMail = async(inputData, origData, batchName) => {
       }
     });
   await console.log(`Email Sent to ${origData.sendZipEmail}`)
-  await fs.unlink(`${batchName}.pptx`, (err) => {
-    if (err) throw err;
-    console.log(`${batchName}.pptx was deleted`);
-  });
-  await fs.unlink(`${batchName}.csv`, (err) => {
-    if (err) throw err;
-    console.log(`${batchName}.csv was deleted`);
-  });
-  await fs.unlink(`${batchName}-issues.csv`, (err) => {
-    if (err) throw err;
-    console.log(`${batchName}-issues.csv was deleted`);
-  });
 }
 
 
@@ -475,6 +443,7 @@ async function findIssues(data){
     if(item.price == null || item.buyBox == null || item.shipsFrom == null || item.availability !== 'In Stock.'){
       issueData.push({
         asin: item.asin,
+        origAsin: item.origAsin,
         title: item.title,
         price: item.price,
         buybox: item.buyBox,
@@ -518,4 +487,26 @@ function verifyToken(req, res, next) {
     console.log("auth failed/your cookie has expired")
     res.redirect('/login')
   }
+}
+
+async function removeAllCsv(batchName){
+  await fs.unlink(`${batchName}.pptx`, (err) => {
+    if (err) throw err;
+    console.log(`${batchName}.pptx was deleted`);
+  });
+  await fs.unlink(`${batchName}.csv`, (err) => {
+    if (err) throw err;
+    console.log(`${batchName}.csv was deleted`);
+  });
+  await fs.unlink(`${batchName}-issues.csv`, (err) => {
+    if (err) throw err;
+    console.log(`${batchName}-issues.csv was deleted`);
+  });
+}
+
+function formatDate(date){
+  let dateFormatted = date.toString().split(' ')
+  dateFormatted= `${dateFormatted[1]} ${dateFormatted[2]} ${dateFormatted[3]}`
+  // console.log(dateFormatted)
+  return dateFormatted
 }
