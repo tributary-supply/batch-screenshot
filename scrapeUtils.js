@@ -194,6 +194,7 @@ async function findIssues(data){
   data.map(item => {
     if(item.price == null || item.buyBox == null || item.shipsFrom == null || item.availability !== 'In Stock.'){
       issueData.push({
+        URL: `https://www.amazon.com/dp/${item.asin}`,
         asin: item.asin,
         origAsin: item.origAsin,
         title: item.title,
@@ -203,8 +204,7 @@ async function findIssues(data){
         availability: item.availability,
         issueDayCount: item.issueDayCount,
         timesFixed: item.timesFixed,
-        issueField: item.issueField
-        // add a field
+        issueField: item.issueField,
       })
     }
   })
@@ -217,6 +217,7 @@ async function findFixed(data){
     console.log( item.asin, 'issuedaycount', item.issueDayCount, 'timesfixed', item.timesFixed, 'issuefield', item.issueField)
     if(item.issueDayCount !== null && isNaN(item.issueDayCount) && item.issueDayCount.includes("Fixed")){
       fixedData.push({
+        URL: `https://www.amazon.com/dp/${item.asin}`,
         asin: item.asin,
         origAsin: item.origAsin,
         title: item.title,

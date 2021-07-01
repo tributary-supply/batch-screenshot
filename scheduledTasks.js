@@ -186,15 +186,18 @@ const sendMail = async() => {
   let csvIssuesName = `issues for ${todaysDate}-issues.csv`
   let csvFixedName = `fixes for ${todaysDate}-fixed.csv`
 
+  const formattedDate = formatDate(todaysDate)
+
   const msg = {
     to: sendTo,
     from: 'admin@sgy.co',
-    subject: `${todaysDate} --- Here are your batch of CSVs for the day!`,
+    subject: `${formattedDate} --- Here are your batch of files for the day!`,
     html: `
-      <h1>${todaysDate}</h1>
+      <h1>${formattedDate}</h1>
       <h3>See today's issues on Amazon products.</h3>
-      <p> Check it out </p>
+      <p> There are 3 files, a full list of all ASINs, a file with issue product pages, and another with issues that were recently fixed. </p>
       <h4>ASID/URL List:</h4>
+      <p> There were ${asins.length} successful scraped pages, here's an exhausting list</p>
       <p> ${asins.toString()} </p>
       `,
     attachments: [
@@ -234,13 +237,13 @@ const sendMail = async() => {
       }
     });
   await console.log(`Email Sent to ${sendTo}`)
+}
+
+async function removeAllCsv(){
   // await fs.unlink(`${batchName}.pptx`, (err) => {
   //   if (err) throw err;
   //   console.log(`${batchName}.pptx was deleted`);
   // });
-}
-
-async function removeAllCsv(){
   await fs.unlink(`all products for ${todaysDate}.csv`, (err) => {
     if (err) throw err;
     console.log(`all products for ${todaysDate}.csv was deleted`);
@@ -258,8 +261,6 @@ async function removeAllCsv(){
 function compareDates(date1, date2){
   var date1 = new Date(date1);
   var date2 = new Date(date2);
-  // console.log(date1)
-  // console.log(date2)
   var Difference_In_Time = date2.getTime() - date1.getTime();  // To calculate the time difference of two dates
   var Difference_In_Days = Difference_In_Time / (1000 * 3600 * 24);  // To calculate the no. of days between two dates
   console.log(Difference_In_Days)
@@ -273,4 +274,10 @@ function getIssuesArr(scrapedData){
   scrapedData.shipsFrom == null ? resultArr.push('shipsFrom') : null
   scrapedData.availability !== 'In Stock.' ? resultArr.push('availability') : null
   return resultArr
+}
+
+function formatDate(date){
+  let dateFormatted = date.toString().split(' ')
+  dateFormatted= `${dateFormatted[1]} ${dateFormatted[2]} ${dateFormatted[3]}`
+  return dateFormatted
 }

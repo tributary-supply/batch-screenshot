@@ -22,9 +22,16 @@ const createFixedCSV = async(data, batchName) => {
   await csv.toDisk(`./${batchName}-fixed.csv`);
 }
 
+const appendLog = async(data)=>{
+  const csv = new ObjectsToCsv(data);
+  // Save to file:
+  await csv.toDisk(`./log.csv`, {append: true});
+}
+
 
 module.exports = {
   createCSV: createCSV,
   createErrorCSV: createErrorCSV,
-  createFixedCSV: createFixedCSV
+  createFixedCSV: createFixedCSV,
+  appendLog: appendLog
 }
