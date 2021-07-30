@@ -21,17 +21,22 @@ MongoClient.connect(url)
 .then(async client =>{
   const db = client.db('scraper');
   const productsCollection = db.collection('products');
+  // const productsCollection = db.collection('productsTest');
   const cronCollection = db.collection('cron');
-  await updateDB(productsCollection, cronCollection) //updates the products AND cron
+
+  let scrapedData = await scrapeUtils.scrape(asins) //USE FOR PRODUCTION-----------------------------------------------------------------------------------------
+  // let scrapedData = testData // USE FOR TESTING---------------------------------------------------------------------------------------------------------------------
+  // console.log('SCRAPED',scrapedData)
+
+  await updateDB(productsCollection, cronCollection, scrapedData) //updates the products AND cron
   let dbData = await getAllFromDB(productsCollection) //gets all data from db and creates CSVs
+
   await sendMail(dbData) //sends mail to designated addresses ------------------------------------------------------------------------------------------------TURN OFF FOR DEVELOPMENT
   await removeAllCsv() //deletes the csvs
 })
 
-async function updateDB(productsCollection, cronCollection){
+async function updateDB(productsCollection, cronCollection, scrapedData){
   console.log('running cron...')
-  let scrapedData = await scrapeUtils.scrape(asins) //USE FOR PRODUCTION-----------------------------------------------------------------------------------------
-  // let scrapedData = testData // USE FOR TESTING---------------------------------------------------------------------------------------------------------------------
   // console.log('SCRAPED',scrapedData)
   await upsertMany(scrapedData, productsCollection)
   await cronCollection.insertOne({"Date": todaysDate})
@@ -63,7 +68,7 @@ async function upsertMany(dataArr, collection){
           aPlusContent: dataArr[i].hasAPlusContent,
           descriptionLength: dataArr[i].description ? dataArr[i].description.length : null,
           bulletCount: dataArr[i].features ? dataArr[i].features.length - 1 : null,
-          features: dataArr[i].formattedFeatures,
+          features: dataArr[i].features,
           ratingCount: dataArr[i].ratingCount,
           reviewCount: dataArr[i].reviewsLink,
           stars: dataArr[i].stars,
@@ -73,7 +78,7 @@ async function upsertMany(dataArr, collection){
           issueDayCount: issueDayCount[0],
           issueField: issueDayCount[1],
           timesFixed: timesFixed,
-          firstIssueDate: issueDayCount[2],
+          firstIssueDate: JSON.stringify(issueDayCount[2]),
         }
       }
       // }
@@ -267,7 +272,7 @@ function compareDates(date1, date2){
   return Difference_In_Days
 }
 
-function getIssuesArr(scrapedData){
+function getIssuesArr(scrapedData){ //formats the single data for an issue csv
   let resultArr = []
   scrapedData.price == null ? resultArr.push('price') : null
   scrapedData.buyBox == null ? resultArr.push('buyBox') : null
