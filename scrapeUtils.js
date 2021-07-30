@@ -26,7 +26,7 @@ const scrape = async (data) => {
 
       var productInfo = await page.evaluate(async () => {
         
-        let errorText, title, price, images, stars, style, byLine, category, asin, buyBox, shipsFrom, availability, description, altImgs, hasAPlusContent, ratingCount, features, formattedFeatures;
+        let errorText, title, price, images, stars, style, byLine, category, asin, buyBox, shipsFrom, availability, description, altImgs, hasAPlusContent, ratingCount, features, formattedFeatures, packSize;
         if(document.querySelector('#g > div > a > img')){
           errorText = document.querySelector('#g > div > a > img').alt
 
@@ -51,12 +51,21 @@ const scrape = async (data) => {
           shipsFrom = document.querySelector('#tabular-buybox-container') !== null ? document.querySelector('#tabular-buybox-container').innerHTML.includes('Amazon.com') ? 'yes': null : null;
           availability = document.querySelector('#availability span') !== null ? document.querySelector('#availability span').innerText : null
           
-          description = document.querySelector('#productDescription')
-          altImgs = document.querySelectorAll('#altImages > ul .item')
+          description = document.querySelector('#productDescription') !== null ? document.querySelector('#productDescription') : null
+          altImgs = document.querySelectorAll('#altImages > ul .item') !== null ? document.querySelectorAll('#altImages > ul .item') : null
           hasAPlusContent = document.querySelector('#aplus_feature_div') ? "yes" : null
           ratingCount = document.querySelector('#acrCustomerReviewText') ? document.querySelector('#acrCustomerReviewText').innerText : null
           
           reviewsLink = document.querySelector('#cr-pagination-footer-0 > a') !== null ? document.querySelector('#cr-pagination-footer-0 > a').getAttribute('href') : document.querySelector('#reviews-medley-footer > div > a') !==null ? document.querySelector('#reviews-medley-footer > div > a').getAttribute('href') : null;
+
+          let technicalDetails = document.querySelectorAll('#productDetails_techSpec_section_1 tbody tr') || null;  //all tech details
+          if(technicalDetails !== null){
+            technicalDetails.forEach(detail => {
+              if(detail.innerText.includes('Size')){
+                packSize = detail.innerText.split('\t')[1];
+              }
+            })
+          }
 
           features = document.body.querySelectorAll('#feature-bullets ul li .a-list-item') || null;
           formattedFeatures = [];
@@ -115,10 +124,10 @@ const scrape = async (data) => {
             "availability": availability,
             "category": category,
             "title": title,
-            "altImages": altImgs.length,
+            "altImages": altImgs !== null ?altImgs.length : null,
             "images": images,
             "aPlusContent": hasAPlusContent,
-            "descriptionLength": description.length,
+            "descriptionLength": description == null ? null : description.length,
             "bulletCount": features.length - 1,
             "features": formattedFeatures,
             "ratingCount": ratingCount,
@@ -126,6 +135,7 @@ const scrape = async (data) => {
             "stars": stars,
             "style": style,
             "byLine": byLine,
+            "packSize": packSize
   
             // "relatedProducts": related,
   

@@ -79,6 +79,15 @@ const testData = [
   }
 ]
 
+const asinsWithCompetitors = [
+  'B07GF4ZR17',
+  'B07GDXCPGD',
+  // 'B01MUCW80B',
+  // 'B0775YFK3P',
+]
+
+
+
 const asins = [
   'B07GF4ZR17',
   'B07GDXCPGD',
@@ -463,7 +472,8 @@ const asins2 = [
 module.exports = {
   asins,
   asins2,
-  testData
+  testData,
+  asinsWithCompetitors
 }
 
 

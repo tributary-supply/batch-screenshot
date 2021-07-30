@@ -2,7 +2,7 @@ require('dotenv').config();
 require('newrelic');
 var PORT = process.env.PORT || 3000;
 var express = require('express');
-const MongoClient = require('mongodb').MongoClient;
+// const MongoClient = require('mongodb').MongoClient;
 // const bodyParser = require("body-parser");
 const cors = require('cors');
 const ejs = require('ejs');
@@ -14,7 +14,7 @@ const puppeteer = require('puppeteer-extra')
 const StealthPlugin = require('puppeteer-extra-plugin-stealth')
 puppeteer.use(StealthPlugin())
 
-const browshot = require('browshot');
+// const browshot = require('browshot');
 var validator = require('validator');
 var cookieParser = require('cookie-parser');
 // var nodemailer = require('nodemailer');
@@ -31,7 +31,7 @@ const csv = require('./csv');
 // const pingUrl = require('./cronJob')  //uncomment to run cron
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-var client = new browshot(`${process.env.BROWSHOT_API_KEY}`);
+// var client = new browshot(`${process.env.BROWSHOT_API_KEY}`);
 
 
 var app = express();
@@ -39,6 +39,7 @@ const url = process.env.MONGO_URL;
 var timeout;
 var emailZip = '';
 let todaysDate = new Date()
+let isScraping=false;
 
 //mongo 
 // MongoClient.connect(url)
