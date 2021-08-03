@@ -1,4 +1,20 @@
 const ObjectsToCsv = require('objects-to-csv');
+const csv = require('csvtojson')
+const csvFilePath = './asin-compare-list.csv'
+
+const convertCsvToJson = async() => { //returns an 
+  let result = [];
+  const jsonArray = await csv().fromFile(csvFilePath)
+  for(i=0; i<jsonArray.length; i++){
+    result.push({
+      asin: jsonArray[i]["ASIN"],
+      ref1: jsonArray[i]["Reference ASIN 1"],
+      ref2: jsonArray[i]["Reference ASIN 2"],
+      ref3: jsonArray[i]["Reference ASIN 3"]
+    })
+  }
+  return result
+}
 
 const createCSV = async(data, batchName) => {
   //data is all the scraped data
@@ -33,5 +49,6 @@ module.exports = {
   createCSV: createCSV,
   createErrorCSV: createErrorCSV,
   createFixedCSV: createFixedCSV,
-  appendLog: appendLog
+  appendLog: appendLog,
+  convertCsvToJson: convertCsvToJson
 }

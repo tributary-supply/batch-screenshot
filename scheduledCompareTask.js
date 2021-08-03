@@ -1,8 +1,10 @@
 console.log('running cron')
 require('dotenv').config();
-const asins = require('./asinList').asinsWithCompetitors
+// const asins = require('./asinList').asinsWithCompetitors
 const scrapeUtils = require('./scrapeUtils')
 const MongoClient = require('mongodb').MongoClient
+const csv = require('./csv');
+
 // const puppeteer = require('puppeteer')
 // const csv = require('./csv');
 
@@ -15,9 +17,11 @@ async function run(){
     await client.connect()
     const db = client.db('scraper')
     const comparedCompCollection = db.collection('compared_with_competitors');
-    const scrapedData = await scrapeUtils.scrape(asins)
-    const updateDB = await updateDataBase(scrapedData, comparedCompCollection)
-    console.log(scrapedData)
+    const dataFromCsv = await csv.convertCsvToJson()  //returns an array of obj {asin, ref1, ref2, ref3}
+    // console.log(dataFromCsv)
+    const scrapedData = await scrapeUtils.scrapeCompareList(dataFromCsv)
+    // const updateDB = await updateDataBase(scrapedData, comparedCompCollection)
+    // console.log(scrapedData)
   } finally {
     await client.close()
     console.log("Mongo Client Closed")
@@ -30,10 +34,12 @@ async function updateDataBase(dataArr, collection){
       const options = { upsert: true };
       let update = {
         $set: {
-          origAsin: dataArr[i].origAsin,
+          // origAsin: dataArr[i].origAsin,
           asin: dataArr[i].asin,
-          title: dataArr[i].title,
-          // price: dataArr[i].price,
+          // title: dataArr[i].title,
+          price: dataArr[i].price,
+          packSize: dataArr[i].packSize,
+          reviews: dataArr[i].reviews,
           // buyBox: dataArr[i].buyBox,
           // shipsFrom: dataArr[i].shipsFrom,
           // availability: dataArr[i].availability,
@@ -44,8 +50,8 @@ async function updateDataBase(dataArr, collection){
           // images: dataArr[i].images,
           // aPlusContent: dataArr[i].hasAPlusContent,
           // descriptionLength: dataArr[i].description ? dataArr[i].description.length : null,
-          bulletCount: dataArr[i].features ? dataArr[i].features.length - 1 : null,
-          features: dataArr[i].formattedFeatures,
+          // bulletCount: dataArr[i].features ? dataArr[i].features.length - 1 : null,
+          // features: dataArr[i].formattedFeatures,
           // ratingCount: dataArr[i].ratingCount,
           // reviewCount: dataArr[i].reviewsLink,
           // stars: dataArr[i].stars,

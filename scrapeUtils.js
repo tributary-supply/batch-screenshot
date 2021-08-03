@@ -1,6 +1,69 @@
 const puppeteer = require('puppeteer')
 const csv = require('./csv');
 
+const scrapeCompareList = async (dataFromCsv) => {
+  const formattedUrlsArr = await formatCompareData(dataFromCsv)
+  // console.log(formattedUrlsArr)
+  let scrapedData = []
+  await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox', '--window-size=1920,1080','--user-agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3312.0 Safari/537.36"'] })
+  .then(async browser => {
+    const page = await browser.newPage();
+    await page.setDefaultNavigationTimeout(0);
+
+    for (i = 1; i < 2; i++) {
+    // for (i = 0; i < formattedUrlsArr.length; i++) {
+      console.log(`working on ${i+1} of ${formattedUrlsArr.length} ... `,formattedUrlsArr[i])
+      // console.log(formattedUrlsArr[i].asin, formattedUrlsArr[i].ref1, formattedUrlsArr[i].ref2, formattedUrlsArr[i].ref3)
+      const evalMain = await pageEvaluation(page, formattedUrlsArr[i].asin)
+      const evalRef1 = formattedUrlsArr[i].ref1 !== null ? await pageEvaluation(page, formattedUrlsArr[i].ref1) : null
+      const evalRef2 = formattedUrlsArr[i].ref2 !== null ? await pageEvaluation(page, formattedUrlsArr[i].ref2) : null
+      const evalRef3 = formattedUrlsArr[i].ref3 !== null ? await pageEvaluation(page, formattedUrlsArr[i].ref3) : null
+
+      console.log(evalMain, evalRef1, evalRef2, evalRef3)
+    }
+  })
+}
+
+const pageEvaluation = async (page, url) => {
+  // let scrapedData = []
+  let asin = url.split('dp/')[1]
+  console.log("URL", asin)
+  await page.goto(url, {
+    waitUntil: 'load',
+    timeout: 0 // Remove the timeout
+  });
+  await page.waitForSelector('body');
+  var productInfo = await page.evaluate(async (asin) => {
+    let price, reviews, packSize
+    price = document.querySelector('#priceblock_saleprice') !== null ? document.querySelector('#priceblock_saleprice').innerText 
+        : document.querySelector('#priceblock_ourprice') !== null ? document.querySelector('#priceblock_ourprice').innerText 
+        : document.querySelector('#priceblock_dealprice') !== null ? document.querySelector('#priceblock_dealprice').innerText : null;
+
+    reviews = document.querySelector('#acrCustomerReviewText') ? document.querySelector('#acrCustomerReviewText').innerText : null
+    
+    let technicalDetails = document.querySelectorAll('#productDetails_techSpec_section_1 tbody tr') || null;  //all tech details
+    if(technicalDetails !== null){
+      technicalDetails.forEach(detail => {
+        if(detail.innerText.includes('Size')){
+          packSize = detail.innerText.split('\t')[1];
+        }
+      })
+    }
+
+    const product = {
+      // asin: asin,   //not coming through
+      price: price,
+      reviews: reviews.split(' ')[0],
+      packSize: packSize
+    }
+    return product
+  })
+  productInfo.asin = asin
+  return productInfo
+}
+
+
+
 
 const scrape = async (data) => {
   const formattedUrlsArr = await formatData(data)
@@ -261,9 +324,21 @@ function formatData(dataArr){
   // return dataArr.join('')
   return dataArr
 }
+function formatCompareData(dataArr){
+  for (i = 0; i < dataArr.length; i++){
+
+    dataArr[i].asin = `https://amazon.com/dp/${dataArr[i].asin}`
+    dataArr[i].ref1 = dataArr[i].ref1.length > 1 ? `https://amazon.com/dp/${dataArr[i].ref1}` : null
+    dataArr[i].ref2 = dataArr[i].ref2.length > 1 ? `https://amazon.com/dp/${dataArr[i].ref2}` : null
+    dataArr[i].ref3 = dataArr[i].ref3.length > 1 ? `https://amazon.com/dp/${dataArr[i].ref3}` : null;
+  }
+  // console.log(dataArr)
+  return dataArr
+}
 
 module.exports = {
   scrape,
   findIssues,
-  findFixed
+  findFixed,
+  scrapeCompareList
 }
