@@ -7,7 +7,7 @@ const sgMail = require('@sendgrid/mail');
 const fs = require("fs");
 const asins = require('./asinList').asins
 const testData = require('./asinList').testData
-// const asins = require('./asinList').asins2
+const asins2 = require('./asinList').asins2
 const csv = require('./csv');
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
@@ -20,12 +20,13 @@ console.log("TODAYS DATE",todaysDate)
 MongoClient.connect(url)
 .then(async client =>{
   const db = client.db('scraper');
-  const productsCollection = db.collection('products');
+  const productsCollection = db.collection(process.env.PRODUCTS_COLLECTION);
   // const productsCollection = db.collection('productsTest');
   const cronCollection = db.collection('cron');
 
-  let scrapedData = await scrapeUtils.scrape(asins) //USE FOR PRODUCTION-----------------------------------------------------------------------------------------
-  // let scrapedData = testData // USE FOR TESTING---------------------------------------------------------------------------------------------------------------------
+  let scrapedData = await scrapeUtils.scrape(asins) //USE FOR PRODUCTION-----------------------------------------------------------------------------------------PROD
+  // let scrapedData = await scrapeUtils.scrape(asins2) //USE FOR TESTING----------------------------------------------------------------------------------------TEST ASIN LIST
+  // let scrapedData = testData // USE FOR TESTING---------------------------------------------------------------------------------------------------------------------TESTING
   // console.log('SCRAPED',scrapedData)
 
   await updateDB(productsCollection, cronCollection, scrapedData) //updates the products AND cron
@@ -44,47 +45,70 @@ async function updateDB(productsCollection, cronCollection, scrapedData){
 
 
 async function upsertMany(dataArr, collection){
+  const notListed = []
   try {
-    for(i=0;i<dataArr.length;i++){
-      const issueDayCount = await getIssueDayCount(dataArr[i], collection)
+    for(i=0;i<dataArr.length;i++){ //MAYBE MOVE THIS OUT OF TRYCATCH
+      // console.log("ASIN IN UPSERT FUNC", dataArr[i].asin)
+
+      if(dataArr[i].errorText == true){
+        notListed.push(dataArr[i])
+        console.log("NO PAGE COUNT:", notListed.length, dataArr[i].origAsin)
+        continue
+      }
+      console.log("not listed", notListed)
+      // console.log("SHIPS FROM", dataArr[i].shipsFrom)
+      const issueDayCount = await getIssueDayCount(dataArr[i], collection) //returns an array [days, issue array, count]
       const timesFixed = await getTimesFixed(dataArr[i], collection, issueDayCount[0])
 
       const query = { origAsin:  dataArr[i].origAsin}
       const options = { upsert: true };
-      let update = {
-        $set: {
-          origAsin: dataArr[i].origAsin,
-          asin: dataArr[i].asin,
-          title: dataArr[i].title,
-          price: dataArr[i].price,
-          buyBox: dataArr[i].buyBox,
-          shipsFrom: dataArr[i].shipsFrom,
-          availability: dataArr[i].availability,
+      let data = {
+        origAsin: dataArr[i].origAsin,
+        asin: dataArr[i].asin,
+        title: dataArr[i].title,
+        price: dataArr[i].price,
+        buyBox: dataArr[i].buyBox,
+        shipsFrom: dataArr[i].shipsFrom,
+        availability: dataArr[i].availability,
 
-          category: dataArr[i].category,
-          title: dataArr[i].title,
-          altImages: dataArr[i].altImgs ? dataArr[i].altImgs.length : null,
-          images: dataArr[i].images,
-          aPlusContent: dataArr[i].hasAPlusContent,
-          descriptionLength: dataArr[i].description ? dataArr[i].description.length : null,
-          bulletCount: dataArr[i].features ? dataArr[i].features.length - 1 : null,
-          features: dataArr[i].features,
-          ratingCount: dataArr[i].ratingCount,
-          reviewCount: dataArr[i].reviewsLink,
-          stars: dataArr[i].stars,
-          style: dataArr[i].style,
-          byLine: dataArr[i].byLine,
+        category: dataArr[i].category,
+        title: dataArr[i].title,
+        // altImages: dataArr[i].altImgs ? dataArr[i].altImgs.length : null,
+        // images: dataArr[i].images,
+        aPlusContent: dataArr[i].hasAPlusContent,
+        descriptionLength: dataArr[i].description ? dataArr[i].description.length : null,
+        bulletCount: dataArr[i].features ? dataArr[i].features.length - 1 : null,
+        // features: dataArr[i].features,
+        ratingCount: dataArr[i].ratingCount,
+        reviewCount: dataArr[i].reviewsLink,
+        stars: dataArr[i].stars,
+        style: dataArr[i].style,
+        byLine: dataArr[i].byLine,
 
-          issueDayCount: issueDayCount[0],
-          issueField: issueDayCount[1],
-          timesFixed: timesFixed,
-          firstIssueDate: JSON.stringify(issueDayCount[2]),
+        issueDayCount: issueDayCount[0],
+        // issueField: issueDayCount[1],
+        timesFixed: timesFixed,
+        // firstIssueDate: JSON.stringify(issueDayCount[2]),
+        firstIssueDate: issueDayCount[2],
+      }
+      console.log("FEATURES", dataArr[i].features)
+      if(dataArr[i].features !== null || dataArr[i].features !== undefined || !dataArr[i].errorText.includes('Sorry')){
+        for( j=0; j< dataArr[i].features.length; j++ ){ //add features array as separate key value pairs to save space
+          data[`Feature ${j}`] = dataArr[i].features[j]
         }
       }
-      // }
-      const result = await collection.updateOne(query, update, options)
+      // console.log("ISSUE DAY COUNT", issueDayCount)
+      if(issueDayCount[1] !== null || issueDayCount[1 !== undefined]){
+        for( j=0; j < issueDayCount[1].length; j++ ){ //add issues array as separate key value pairs to save space
+          data[`Issue ${j}`] = issueDayCount[1][j]
+        }
+      }
+
+      // console.log('DATA before push to DB', data)
+
+      const result = await collection.replaceOne(query, data, options)
       // console.log(`${result} documents were inserted`);
-      console.log('object inserted')
+      // console.log('object inserted', 'Current: ', dataArr[i].asin, 'next asin:', dataArr[i+1].asin)
     }
   } catch(err){
     console.log(err)
@@ -100,7 +124,7 @@ async function getAllFromDB(collection){
     results.push(doc)
   });
   await csv.createCSV(results, `all products for ${todaysDate}`)
-  
+  // console.log('RESULTS FROM GETALLFROMDB', results)
   let issueData = await scrapeUtils.findIssues(results)
   if(issueData.length < 1){ //if there are no products that were fixed this time around, send a default msg in csv
     issueData = [{
@@ -122,7 +146,7 @@ async function getIssueDayCount(scrapedData, collection){
   let prod;
   prod = await collection.findOne({ origAsin: scrapedData.origAsin})
   if(scrapedData.price == null || scrapedData.buyBox == null || scrapedData.shipsFrom == null || scrapedData.availability !== 'In Stock.'){ //if the newly scraped data has issues, see if it had issues before. if it has, add 1, if it hasn't set to 1
-    console.log("ISSSUEEEEE")
+    // console.log("ISSSUEEEEE")
     let issue = getIssuesArr(scrapedData)
     
     if(prod){  //make sure the product exists in the db
@@ -141,9 +165,10 @@ async function getIssueDayCount(scrapedData, collection){
       return [1, issue, todaysDate] 
     }
   } else if(prod && prod.issueDayCount >= 1){ //if the db data had issues and the scraped data doesn't have issues, it must be fixed!
-    return [`Fixed after ${prod.issueDayCount} days`, prod.issueField]
+    return [`Fixed after ${prod.issueDayCount} days`, null, null]
+    // return [`Fixed after ${prod.issueDayCount} days`, prod.issueField, null]
   } else { //the newly scrpaed data didn't have any issues, set to null
-    return [null]
+    return [null, null, null]
   }
 }
 

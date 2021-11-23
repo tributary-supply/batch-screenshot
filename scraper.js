@@ -17,18 +17,13 @@ puppeteer.use(StealthPlugin())
 // const browshot = require('browshot');
 var validator = require('validator');
 var cookieParser = require('cookie-parser');
-// var nodemailer = require('nodemailer');
 const sgMail = require('@sendgrid/mail');
-// const { DownloaderHelper } = require('node-downloader-helper');
 const decompress = require('decompress');
 const pptxgen = require('pptxgenjs');
-// const { get } = require('http');
 var rimraf = require("rimraf");
 const ssUtils = require('./ss-utils/utils')
 const csv = require('./csv');
-// const { count } = require('console');
 
-// const pingUrl = require('./cronJob')  //uncomment to run cron
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 // var client = new browshot(`${process.env.BROWSHOT_API_KEY}`);
@@ -244,10 +239,10 @@ const scrape = async (data) => {
             "availability": availability,
             "category": category,
             "title": title,
-            "altImages": altImgs.length,
+            "altImages": altImgs !== null ? altImgs.length : null,
             "images": images,
             "aPlusContent": hasAPlusContent,
-            "descriptionLength": description.length,
+            "descriptionLength": description == null ? null : description.length,
             "bulletCount": features.length - 1,
             "features": formattedFeatures,
             "ratingCount": ratingCount,
